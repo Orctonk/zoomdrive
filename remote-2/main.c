@@ -3,8 +3,7 @@
 #include "define.h"
 #include "uart.h"
 #include <math.h>
-#include <util/delay.h>
-#include "lcd.h"
+#include <util/delay.h> #include "lcd.h"
 
 /*
 	Simple program that takes the temperature of an object when it is at the correct distance
@@ -34,10 +33,6 @@ void btnInit(void) {
 
     DDRD &= ~(1<<PIND5) | (1<<PIND6) | (1<<PIND7);
     PORTD |= (1<<PIND5) | (1<<PIND6) | (1<<PIND7);
-    
-
-    
-    
 }
 
 void joyStickInit(void) {
@@ -145,9 +140,26 @@ int readADC(int channel) {
 int main(void) {
 
 
+    int strInt = 0;
+    char *currStr;
+    char *selStr;
+    char *nxtStr;
+    char *strings[5];
+
+    strings[0] = "st1";
+    strings[1] = "st2";
+    strings[2] = "st3";
+    strings[3] = "st4";
+    strings[4] = "st5";
+
+    selStr = currStr = strings[0];
+    nxtStr = strings[1];
+
     DDRD |= (1<<PIND4);
 
     int dead = 0;
+    int prev = 0;
+    int adcVal = 0;
 
 	// Initialize all the necessary parts.
     lcdInit();
@@ -167,16 +179,41 @@ int main(void) {
             dead = 0;
         }
 
-		writeString("Hor: ");
-        bcd2Asc(readADC(1));
-		writeTemp(tous, huns, tens, ones, intDec);
+		writeString(currStr);
+
+        writeData (' ');
+
+		writeString(nxtStr);
 
         moveCursor(0b10010000);
 
+        writeString("Selected: ");
+        writeString(selStr);
 
-		writeString("Vert: ");
-        bcd2Asc(readADC(0));
-		writeTemp(tous, huns, tens, ones, intDec);
+
+        adcVal = readADC(1);
+
+        if (!dead && (adcVal <= 200)) {
+            _delay_ms(10);
+            if (!(++strInt == 5)) {
+                currStr = nxtStr;
+                nxtStr = strings[strInt];
+            } else {
+                strInt = 0;
+                currStr = nxtStr;
+                nxtStr = strings[strInt];
+            }
+        } else if (!dead && (adcVal >= 800)) {
+            _delay_ms(10);
+            if (!(--strInt == -1)) {
+                nxtStr = currStr;
+                currStr = strings[strInt];
+            } else {
+                strInt = 4;
+                nxtStr = currStr;
+                currStr = strings[strInt];
+            }
+        }
 
         moveCursor(0b10100000);
 
@@ -189,6 +226,11 @@ int main(void) {
             writeData('N');
         }
 
+        if (!PINC && !dead) {
+            selStr = currStr;
+        }
+
+        writeData(strInt+48);
         _delay_ms(10);
     }
 
