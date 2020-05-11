@@ -19,15 +19,32 @@ int reset = 0;
 int tous, huns, tens, ones, intDec, dist, tilt;
 
 void blink(void) {
-	PORTB |= (1<<PORTB0);
-	_delay_ms(100);
-	PORTB &= ~(1<<PORTB0);
-	_delay_ms(100);
+	PORTC |= (1<<PORTC5);
+	_delay_ms(10);
+	PORTC &= ~(1<<PORTC5);
+	_delay_ms(10);
 }
 
 void ledInit(void) {
+    DDRC |= (1<<PINC5);
+    PORTC &= ~(1<<PINC5);
 }
 
+void btnInit(void) {
+
+    DDRD &= ~(1<<PIND5) | (1<<PIND6) | (1<<PIND7);
+    PORTD |= (1<<PIND5) | (1<<PIND6) | (1<<PIND7);
+    
+
+    
+    
+}
+
+void joyStickInit(void) {
+
+    DDRC &= ~(1<<PINC2);
+    PORTC |= (1<<PINC2);
+}
 
 /*
 	A function that takes a number, splits it and converts those splits to ascii.
@@ -128,30 +145,50 @@ int readADC(int channel) {
 int main(void) {
 
 
-    DDRC &= ~(1<<PINC2);
-    PORTC |= (1<<PINC2);
+    DDRD |= (1<<PIND4);
 
+    int dead = 0;
 
 	// Initialize all the necessary parts.
     lcdInit();
     ADCInit();
+    ledInit();
+    joyStickInit();
+    btnInit();
 
 	// Loop as long as there is power in the MCU.
     while(1) {
 
         clearDisplay();
+        
+        if (!(PIND & (1<<7))) {
+            dead = 1;
+        } else {
+            dead = 0;
+        }
 
 		writeString("Hor: ");
         bcd2Asc(readADC(1));
 		writeTemp(tous, huns, tens, ones, intDec);
 
-        moveCursor(0b10100000);
+        moveCursor(0b10010000);
 
 
 		writeString("Vert: ");
         bcd2Asc(readADC(0));
 		writeTemp(tous, huns, tens, ones, intDec);
-	
+
+        moveCursor(0b10100000);
+
+		writeString("BTN: ");
+        writeData(PINC+48);
+
+        if (dead) {
+            writeData('D');
+        } else {
+            writeData('N');
+        }
+
         _delay_ms(10);
     }
 
