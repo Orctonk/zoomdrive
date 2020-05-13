@@ -10,6 +10,7 @@ void clearDisplay(void);
 
 void moveCursor(uint8_t data);
 
+
 void writeTemp(int, int, int, int, int);
 
 void lcdInit(void);
