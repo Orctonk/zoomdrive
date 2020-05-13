@@ -227,6 +227,7 @@ void uartInit(void) {
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(1024);
 
+
     int msg_id = 0;
 
 
@@ -236,24 +237,26 @@ void uartInit(void) {
 
         if (len > 0) {
 
-            int read = (int)*data;
+            ESP_LOGI(TAG, "Raw data: %s", data);
+
+            uint8_t read = atoi((const char*)data);
+
+            ESP_LOGI(TAG, "Read data before anding: %d", read);
             read &= 0b11100000;
+
+
+            ESP_LOGI(TAG, "Read data after anding: %d", read);
 
             switch (read) {
                 case TOCAR:
-                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/to_car",
-                            (const char*)data, 0, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/tests", "data", 0, 0, 0);
                     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
                     break;
                 case FROMCAR:
-                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/from_car", "data", 0, 0, 0);
-                    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
                     break;
 
                 case INFO:
-                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/info", "data", 0, 0, 0);
-                    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
                     break;
                 default:
