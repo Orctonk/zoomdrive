@@ -11,7 +11,7 @@
 static volatile uint32_t ms = 0;
 
 // Timer interrupt vector
-ISR(TIMER2_OVF_vect){
+ISR(TIMER2_COMPA_vect){
     ms++;
 }
 
@@ -20,16 +20,16 @@ ISR(TIMER2_OVF_vect){
 // Initializes time module
 void Time_Init(){
     // Start timer 
-    TCCR2B = (1<<CS20)|(0<<CS21)|(0<<CS22);
+    TCCR2B = (0<<CS20)|(0<<CS21)|(1<<CS22);
     TCCR2A = (1<<WGM21);
-    OCR0A = 125 * TIME_CALIBRATION_FACTOR;
-    TIMSK2 |= (1<<TOIE2);
+    OCR2A = 125 * TIME_CALIBRATION_FACTOR;
+    TIMSK2 |= (1<<OCIE2A);
 }
 
 // Gets the time since system startup
 time Time_Get(){
     time t;
-    uint32_t secs = Time_Getmillis() / 10; // Get seconds
+    uint32_t secs = Time_GetMillis() / 1000; // Get seconds
     // Reduce stepwise
     t.hrs = secs / (60 * 60);
     secs -= t.hrs * (60 * 60);
