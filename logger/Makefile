@@ -1,5 +1,5 @@
 # Change these to reflect your project
-TARGET ?= project-name 
+TARGET ?= main
 PORT ?= /dev/ttyACM0
 SPORT ?= /dev/ttyUSB0
 
@@ -13,9 +13,9 @@ MCU = atmega328p
 AVRDUDE_DEVICE = m328p
 
 # Define project structure
-OUT_DIR  ?= ./build
-SRC_DIRS ?= ./src
-INC_DIRS ?= ./
+OUT_DIR  ?= ./build/logger
+SRC_DIRS ?= ./src ../common/
+INC_DIRS ?= ./ ../common/
 
 # Toolchain
 CC := avr-gcc
