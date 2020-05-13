@@ -29,10 +29,12 @@ ISR(USART_RX_vect){
         if(!(c & listen_topic))
             skip = true;
         else {
-            Message msg;
-            msg.type = atoi(c);
-            bool done = false;
             char buf[ARGSIZE];
+            buf[0] = c;
+            buf[1] = '\0';
+            Message msg;
+            msg.type = atoi(buf);
+            bool done = false;
             for(int i = 0; i < MAXARGS && !done; i++){
                 for(int j = 0; j<ARGSIZE - 1; j++){
                     buf[j] = UART_GetChar();
