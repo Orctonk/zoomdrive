@@ -23,36 +23,36 @@ static int UART_PutChar(char c){
 	return 0;
 }
 
-ISR(USART_RX_vect){
-    char c = UDR0;
-    if(!skip){
-        if(!(c & listen_topic))
-            skip = true;
-        else {
-            char buf[ARGSIZE];
-            buf[0] = c;
-            buf[1] = '\0';
-            Message msg;
-            msg.type = atoi(buf);
-            bool done = false;
-            for(int i = 0; i < MAXARGS && !done; i++){
-                for(int j = 0; j<ARGSIZE - 1; j++){
-                    buf[j] = UART_GetChar();
-                    if(buf[j] == ' '){
-                        buf[j] = '\0';
-                        break;
-                    } else if (buf[j] == '\n'){
-                        buf[j] = '\0';
-                        done = true;
-                        break;
-                    }
-                }
-                buf[ARGSIZE - 1] = '\0';
-                strcpy(msg.args[i],buf);
-            }
-            if(callback != NULL)
-                callback(msg);
+bool readfield(char *buf){
+    for(int j = 0; j<ARGSIZE - 1; j++){
+        buf[j] = UART_GetChar();
+        if(buf[j] == ' '){
+            buf[j] = '\0';
+            return true;
+        } else if (buf[j] == '\n'){
+            buf[j] = '\0';
+            return false;
         }
+    }
+}
+
+ISR(USART_RX_vect){
+    char buf[ARGSIZE];
+    bool done = !readfield(buf);
+    uint8_t topic = atoi(buf);
+    if(!(topic & listen_topic)){
+        while(!done && UART_GetChar() != '\n');
+    }
+    else {
+        Message msg;
+        msg.type = topic;
+        done = false;
+        for(int i = 0; i < MAXARGS && !done; i++){
+            done = !readfield(buf);
+            strcpy(msg.args[i],buf);
+        }
+        if(callback != NULL)
+            callback(msg);
     }
 }
 
@@ -70,11 +70,17 @@ void Message_Init(uint16_t BAUD){
 }
 
 void Message_Send(Message msg){
-    UART_PutChar(msg.type + '0');
+    char buf[4];
+    itoa(msg.type,buf,10);
+    char *c = &buf[0];
+    while((*c) != '\0'){
+        UART_PutChar((*c));
+        c++;
+    }
     for(int i = 0; i < MAXARGS; i++){
         if(msg.args[i][0] != '\0'){
             UART_PutChar(' ');
-            char *c = &msg.args[i][0];
+            c = &msg.args[i][0];
             while((*c) != '\0'){
                 UART_PutChar((*c));
                 c++;
