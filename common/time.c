@@ -3,6 +3,10 @@
 
 // ------------- PRIVATE -------------
 
+#ifndef TIME_CALIBRATION_FACTOR
+#define TIME_CALIBRATION_FACTOR 1
+#endif
+
 // Raw timer ticks since system startup
 static volatile uint32_t ms = 0;
 
@@ -18,7 +22,7 @@ void Time_Init(){
     // Start timer 
     TCCR2B = (1<<CS20)|(0<<CS21)|(0<<CS22);
     TCCR2A = (1<<WGM21);
-    OCR0A = 125;
+    OCR0A = 125 * TIME_CALIBRATION_FACTOR;
     TIMSK2 |= (1<<TOIE2);
 }
 
