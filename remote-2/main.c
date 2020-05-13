@@ -193,6 +193,14 @@ int main(void) {
     ledInit();
     joyStickInit();
     btnInit();
+    uartInit();
+
+    while(1) {
+
+        uartSendData(49);
+
+    }
+
 
 
 // Loop as long as there is power in the MCU.

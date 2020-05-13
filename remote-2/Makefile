@@ -13,8 +13,8 @@ OBJ2HEX = avr-objcopy
 AVRDUDE = avrdude
 
 OUT_DIR  ?= ./build
-SRC_DIRS ?= ./ ../common/
-INC_DIRS ?= ./ ../common/ 
+SRC_DIRS ?= ./ 
+INC_DIRS ?= ./
 
 TARGET_ELF := $(OUT_DIR)/$(TARGET).elf
 TARGET_HEX := $(TARGET_ELF:.elf=.hex)

@@ -2,7 +2,7 @@
 
 
 
-#define F_CPU 1000000
+#define F_CPU 1000000UL
 #define BAUD 4800UL
 #define UBBR_VAL ((F_CPU / (16UL * BAUD)) - 1)
 

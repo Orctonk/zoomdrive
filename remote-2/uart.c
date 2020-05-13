@@ -11,6 +11,12 @@ void uartSendData(int data) {
     UDR0 = data;
 }
 
+char UART_GetChar(){
+    while ( !(UCSR0A & (1<<RXC0)) ) {}
+	/* Get and return received data from buffer */
+	return UDR0;
+}
+
 void uartSendString(char* string) {
     while (*string != '\0') {
         uartSendData(*string);
