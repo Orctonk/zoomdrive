@@ -14,8 +14,8 @@ AVRDUDE_DEVICE = m328p
 
 # Define project structure
 OUT_DIR  ?= ./build
-SRC_DIRS ?= ./src
-INC_DIRS ?= ./
+SRC_DIRS ?= ./src ../common/
+INC_DIRS ?= ./ ../common/
 
 # Toolchain
 CC := avr-gcc
