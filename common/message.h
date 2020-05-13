@@ -1,11 +1,6 @@
 #ifndef __MESSAGE_H__
 #define __MESSAGE_H__
 
-#include <stdint.h>
-
-#define MAXARGS 3
-#define ARGSIZE 32
-
 typedef enum MessageTopic{
     TOCAR       = 0b00100000,
     FROMCAR     = 0b01000000,
@@ -27,6 +22,12 @@ typedef enum MessageType{
     HEARTBEAT       = (INFO)        |   11
 } MessageType;
 
+#ifndef MESSAGE_ONLY_ENUM
+#include <stdint.h>
+
+#define MAXARGS 3
+#define ARGSIZE 32
+
 typedef struct Message {
     MessageType type;
     char args[MAXARGS][ARGSIZE];
@@ -37,5 +38,6 @@ typedef void (*MessageCallback)(Message);
 void Message_Init(uint16_t BAUD);
 void Message_Send(Message msg);
 void Message_Register(MessageTopic topic,MessageCallback cb);
+#endif
 
 #endif
