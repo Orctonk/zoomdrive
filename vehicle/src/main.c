@@ -8,10 +8,14 @@
 
 #include <avr/io.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "drivers/SPI.h"
 #include "drivers/LCD.h"
 #include "drivers/timer.h"
+#include "drivers/summer.h"
+#include "message.h"
 
 #define LED_PORT PORTC
 #define LED_PIN PIN0 
@@ -21,12 +25,15 @@
 #define BUTTON_PIN PIN1
 #define BUTTON_DDR DDRC
 
+int32_t las_update;         //Last recieved heartbeat.
+
 /*
  * Initialze device by calling all initialization functions 
  */
 void init(){  
     SPI_init();
     LCD_init();
+    summer_init(); 
     timer_init();
 
     LED_DDR|=(1<<LED_PIN);
@@ -37,14 +44,37 @@ void init(){
 }
 
 /*
+ * Recieves a message and do perform right action.
+ */ 
+void callback(Message msg){
+    
+    if(msg.type == PING){
+        
+        Message reply;
+        reply.type = PONG; 
+        itoa(msg.type, reply.args[0],10);
+        strcpy(reply.args[1],msg.args[0]);
+        strcpy(reply.args[2],msg.args[1]);
+
+        LCD_write_string("PING PONG ");
+        Message_Send(reply); 
+    }
+    if(msg.type == HONK){
+        summer_beep();
+    }
+}
+
+/*
  * Main function 
  */
 int main(void) {
     init();
 
-    LED_PORT|=(1<<LED_PIN);
-    LCD_write_string("Welcome");
+    //LED_PORT|=(1<<LED_PIN);
+    //LCD_write_string("Welcome");
     
+    Message_Init(4800);
+    Message_Register(0xff,callback);
     
     while(1){
     }

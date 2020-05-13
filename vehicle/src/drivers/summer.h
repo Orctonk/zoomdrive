@@ -14,8 +14,8 @@
 
 #include <avr/io.h>
 
-#define SUMMER_DDR DDRD
-#define SUMMER_PIN PIN5
+#define SUMMER_DDR DDRB
+#define SUMMER_PIN PIN1
 
 /*
  *Initializes the device.
@@ -35,6 +35,6 @@ void summer_stop();
 /*
  * The buzzer beeps two times.
  */
-void summer_read_complete(); 
+void summer_beep(); 
 
 #endif /* SUMMER_H_ */

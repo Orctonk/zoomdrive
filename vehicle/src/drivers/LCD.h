@@ -15,7 +15,7 @@
 #include <avr/io.h>
 
 #define LCD_DDR DDRB
-#define LCD_REGISTER_SELECT_PIN PIN1
+#define LCD_REGISTER_SELECT_PIN PIN3
 #define LCD_PORT PORTB
 #define LCD_CHIP_SELECT_PIN PIN2
 

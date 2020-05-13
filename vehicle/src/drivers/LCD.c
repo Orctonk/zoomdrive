@@ -34,10 +34,10 @@ void LCD_transmit(uint8_t temp){
  *Initializes the display.
  */
 void LCD_init(){
-    
-	LCD_DDR |= (1<< LCD_CHIP_SELECT_PIN)|(1<< LCD_REGISTER_SELECT_PIN);
+    DDRC |= (1<< LCD_REGISTER_SELECT_PIN);
+	LCD_DDR |= (1<< LCD_CHIP_SELECT_PIN);
 	_delay_ms(45);
-	LCD_PORT &= ~(1<< LCD_REGISTER_SELECT_PIN);
+	PORTC &= ~(1<< LCD_REGISTER_SELECT_PIN);
 	//Function set
 	LCD_transmit(0x39); 
 	_delay_us(30);
@@ -73,13 +73,13 @@ void LCD_init(){
  *string: The string to be written to the display.
  */
 void LCD_write_string(const char* string){
-	LCD_PORT |= (1<< LCD_REGISTER_SELECT_PIN);
+	PORTC |= (1<< LCD_REGISTER_SELECT_PIN);
 	for(int i = 0; string[i] != '\0'; i++){
 		char c = string[i]; 
 		LCD_transmit(c);
 	}
 	
-	LCD_PORT &= ~(1<< LCD_REGISTER_SELECT_PIN);
+	PORTC &= ~(1<< LCD_REGISTER_SELECT_PIN);
 }
 
 /*

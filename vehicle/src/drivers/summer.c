@@ -13,10 +13,11 @@
  */
 void summer_init(){
 	SUMMER_DDR |= (1<< SUMMER_PIN);
-	TCCR0B = 0;
-	OCR0A = 48; 
-	OCR0B = 48;
-	TCCR0A = (1<<COM0B0)|(1<<WGM01);
+	TCCR1B = (1<<WGM12);
+	OCR1A = 48; 
+	OCR1B = 48;
+	TCCR1A = (1<<COM1A0);
+	
 	
 }
 
@@ -24,20 +25,20 @@ void summer_init(){
  *Will indicate to the user that the the reading is happening.
  */
 void summer_start(){
-	TCCR0B = (1<< CS02); 
+	TCCR1B |= (1<< CS12); 
 }
 
 /*
  *Will indicate to the user when a reading is not happening.
  */
 void summer_stop(){
-	TCCR0B = 0; 
+	TCCR1B &= ~(1<< CS12); 
 }
 
 /*
- *Will indicate to the user that the reading is complete.
+ * The buzzer beeps two times.
  */
-void summer_read_complete(){
+void summer_beep(){
 	summer_stop();
 	_delay_ms(500);
 	summer_start();

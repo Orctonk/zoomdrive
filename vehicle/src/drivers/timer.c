@@ -38,6 +38,5 @@ uint32_t timer_get_time(){
 
 	uint32_t current = ticks / (F_CPU/1024/(255 + 1)); 
 	
-	
 	return current; 
 	}

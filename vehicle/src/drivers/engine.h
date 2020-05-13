@@ -13,6 +13,7 @@
 
 #include <avr/io.h>
 
+//Motor pin definition.
 //#define 
 
 /*
