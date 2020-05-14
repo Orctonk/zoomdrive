@@ -15,6 +15,7 @@
 #include "drivers/LCD.h"
 #include "drivers/timer.h"
 #include "drivers/summer.h"
+#include "drivers/engine.h"
 #include "message.h"
 
 #define LED_PORT PORTC
@@ -25,7 +26,7 @@
 #define BUTTON_PIN PIN1
 #define BUTTON_DDR DDRC
 
-int32_t las_update;         //Last recieved heartbeat.
+//int32_t last_update;         //Last recieved heartbeat.
 
 /*
  * Initialze device by calling all initialization functions 
@@ -34,6 +35,7 @@ void init(){
     SPI_init();
     LCD_init();
     summer_init(); 
+    engine_init();
     timer_init();
 
     LED_DDR|=(1<<LED_PIN);
@@ -47,9 +49,8 @@ void init(){
  * Recieves a message and do perform right action.
  */ 
 void callback(Message msg){
-    
-    if(msg.type == PING){
-        
+   
+    if(msg.type == PING){  
         Message reply;
         reply.type = PONG; 
         itoa(msg.type, reply.args[0],10);
@@ -59,8 +60,17 @@ void callback(Message msg){
         LCD_write_string("PING PONG ");
         Message_Send(reply); 
     }
-    if(msg.type == HONK){
+    else if(msg.type == HONK){
         summer_beep();
+    }
+    else if(msg.type == EMBUTTON){
+        engine_set_speed(0); 
+    }
+    else if(msg.type == ENGINE_POWER){
+        engine_set_speed(atoi(msg.args[0]));
+    }
+    else if(msg.type == HEADING){
+        engine_turn(atoi(msg.args[0]));
     }
 }
 
@@ -70,12 +80,10 @@ void callback(Message msg){
 int main(void) {
     init();
 
-    //LED_PORT|=(1<<LED_PIN);
-    //LCD_write_string("Welcome");
-    
     Message_Init(4800);
     Message_Register(0xff,callback);
     
+   
     while(1){
     }
 }

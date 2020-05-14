@@ -8,13 +8,32 @@
  * 
  */
 
-#ifndef LCD_H_
-#define LCD_H_
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #include <avr/io.h>
 
-//Motor pin definition.
-//#define 
+#define PWM_DDR DDRD
+#define EN_DDR DDRD
+//Right wheel
+#define RIGHT_PWM_PIN PIN6
+#define RIGHT_EN_PIN PIN2
+#define RIGHT_IN1 PIN6
+#define RIGHT_IN2 PIN7
+//Left wheel
+#define LEFT_PWM_PIN PIN5
+#define LEFT_EN_PIN PIN3
+#define LEFT_IN1 PIN7
+#define LEFT_IN2 PIN0
+
+
+//#define LEFT_PWM_PIN PIN5
+
+
+/*
+ * Initialize motor
+ */
+void engine_init();
 
 /*
  * Set speed of viecle.
