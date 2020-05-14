@@ -1,9 +1,8 @@
 #include <avr/io.h>
-#include <string.h>
 #include "define.h"
 #include "../common/message.h"
-#include "usart.h"
 #include <math.h>
+#include <string.h>
 #include <avr/interrupt.h>
 #include <util/delay.h> 
 #include "lcd.h"
@@ -168,11 +167,35 @@ void menuLeft(void) {
 }
 
 void callback(Message msg) {
-    writeString("Callback");
-    while(1) {
+    blink();
+}
 
-        blink();
+
+void vertDrive(int dir) {
+    Message msg;
+    msg.type = 32;
+    if (dir == 1) {
+        strcpy(msg.args[0], "1\n");
+    } else if (dir == -1) {
+        strcpy(msg.args[0], "-1\n");
+    } else {
+        strcpy(msg.args[0], "0\n");
     }
+    Message_Send(msg);
+}
+
+void horDrive(int dir) {
+    Message msg;
+    msg.type = 33;
+    if (dir == 1) {
+        strcpy(msg.args[0], "1\n");
+    } else if (dir == -1) {
+        strcpy(msg.args[0], "-1\n");
+    } else {
+        strcpy(msg.args[0], "0\n");
+    }
+    Message_Send(msg);
+
 }
 
 
@@ -196,7 +219,8 @@ int main(void) {
     DDRD |= (1<<PIND4);
 
     int dead = 0;
-    int adcVal = 0;
+    int vertAdc = 0;
+    int horAdc = 0;
 
     // Initialize all the necessary parts.
     lcdInit();
@@ -206,27 +230,14 @@ int main(void) {
     btnInit();
     Message_Init(4800);
     Message_Register(0xff, callback);
-
-    Message msg;
     //
-    //while(1) {
-    //    blink();
-    //    usart_write_string("00100000");
-    //    usart_write_string("\0");
-    //    _delay_ms(100);
-    //}
-
     // Loop as long as there is power in the MCU.
     while(1) {
 
         clearDisplay();
 
-
         if (!(PIND & (1<<7))) {
             dead = 1;
-            msg.type = 32;
-            strcpy(msg.args[0], "1");
-            Message_Send(msg);
         } else {
             dead = 0;
         }
@@ -242,22 +253,44 @@ int main(void) {
         writeString("Selected: ");
         writeString(selStr);
 
+        vertAdc = readADC(1);
+        horAdc = readADC(0);
 
-        adcVal = readADC(1);
+        if (dead) {
+            if (vertAdc >= 800) {
+                vertDrive(1);
+            } else if (vertAdc <= 200) {
+                vertDrive(-1);
+            } else if (horAdc >= 800) {
+                horDrive(1);
+            } else if (horAdc <= 200) {
+                horDrive(-1);
+            }
 
-        if (!dead && (adcVal <= 200)) {
+        } else {
+            if (horAdc >= 800) {
+                menuRight();
+            } else if (horAdc <= 200) {
+                menuLeft();
+            } 
+
+        }
+
+        if (!dead && (vertAdc <= 200)) {
             menuRight();
             if (prev == 1) {
                 menuRight();
             }
             prev = 0;
-        } else if (!dead && (adcVal >= 800)) {
+        } else if (!dead && (vertAdc >= 800)) {
             menuLeft();
             if (prev == 0) {
                 menuLeft();
             }
             prev = 1;
         }
+
+
 
         moveCursor(0b10100000);
 
@@ -270,10 +303,6 @@ int main(void) {
             writeData('N');
         }
 
-        if (!PINC && !dead) {
-            selStr = currStr;
-
-        }
 
         if (!(strInt == -1)) {
             writeData(strInt+48);
