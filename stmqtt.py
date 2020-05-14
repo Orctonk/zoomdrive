@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import serial
 import paho.mqtt.client as mqtt
@@ -6,8 +6,7 @@ import paho.mqtt.client as mqtt
 serialdev = '/dev/ttyUSB0'
 broker = "tfe.iotwan.se"
 port = 1883
-publish_topic = "zoomdrive/test"
-subscribe_topic = "zoomdrive/tests"
+subscribe_topic = "zoomdrive/#"
 
 
 #MQTT callbacks
@@ -48,7 +47,7 @@ except:
 
 try:
     ser.flushInput()
-    #create an mqtt client
+    # create an mqtt client
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
@@ -60,11 +59,18 @@ try:
     
     client.loop_start()
 
+    topicdict = {
+        0b00100000 : "zoomdrive/to_car",
+        0b01000000 : "zoomdrive/from_car",
+        0b10000000 : "zoomdrive/information"
+    }
+
     #remain connected to broker
     #read data from serial and publish
     while True:
         line = ser.readline().strip()
-        #second list element is temp
+        publish_topic = topicdict[int(line.split(' ')[0]) & 0b11100000]
+        
         print("publishing \"{}\"".format(line))
         client.publish(publish_topic, line)
 
