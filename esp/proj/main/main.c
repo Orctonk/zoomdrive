@@ -246,13 +246,15 @@ void uartInit(void) {
                     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
                     break;
                 case FROMCAR:
-                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/from_car", "data", 0, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/from_car",
+                            (const char*)data, 0, 0, 0);
                     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
                     break;
 
                 case INFO:
-                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/info", "data", 0, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, "zoomdrive/info", 
+                            (const char*)data, 0, 0, 0);
                     ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
                     break;

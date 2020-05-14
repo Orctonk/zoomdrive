@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "define.h"
-#include "uart.h"
+#include "../common/message.h"
 #include <math.h>
 #include <util/delay.h> 
 #include "lcd.h"
@@ -193,8 +193,7 @@ ADCInit();
 ledInit();
 joyStickInit();
 btnInit();
-uartInit();
-
+Message_Init(4800);
 
 
 // Loop as long as there is power in the MCU.
@@ -249,6 +248,7 @@ uartInit();
 
         if (!PINC && !dead) {
             selStr = currStr;
+
         }
 
         if (!(strInt == -1)) {
