@@ -1,17 +1,19 @@
 #include <avr/io.h>
-#include <avr/interrupt.h>
+#include <string.h>
 #include "define.h"
 #include "../common/message.h"
+#include "usart.h"
 #include <math.h>
+#include <avr/interrupt.h>
 #include <util/delay.h> 
 #include "lcd.h"
 
 /*
-Simple program that takes the temperature of an object when it is at the correct distance
-and the device is tilted at a 90 degree angle.
+   Simple program that takes the temperature of an object when it is at the correct distance
+   and the device is tilted at a 90 degree angle.
 
-Written by Jakob Lundkvist 
-*/
+   Written by Jakob Lundkvist 
+   */
 
 
 // Global variables
@@ -24,31 +26,31 @@ char *nxtStr;
 char *strings[5];
 
 void blink(void) {
-PORTC |= (1<<PORTC5);
-_delay_ms(10);
-PORTC &= ~(1<<PORTC5);
-_delay_ms(10);
+    PORTC |= (1<<PORTC5);
+    _delay_ms(10);
+    PORTC &= ~(1<<PORTC5);
+    _delay_ms(10);
 }
 
 void ledInit(void) {
-DDRC |= (1<<PINC5);
-PORTC &= ~(1<<PINC5);
+    DDRC |= (1<<PINC5);
+    PORTC &= ~(1<<PINC5);
 }
 
 void btnInit(void) {
 
-DDRD &= ~(1<<PIND5) | (1<<PIND6) | (1<<PIND7);
-PORTD |= (1<<PIND5) | (1<<PIND6) | (1<<PIND7);
+    DDRD &= ~(1<<PIND5) | (1<<PIND6) | (1<<PIND7);
+    PORTD |= (1<<PIND5) | (1<<PIND6) | (1<<PIND7);
 }
 
 void joyStickInit(void) {
 
-DDRC &= ~(1<<PINC2);
-PORTC |= (1<<PINC2);
+    DDRC &= ~(1<<PINC2);
+    PORTC |= (1<<PINC2);
 }
 
 /*
-A function that takes a number, splits it and converts those splits to ascii.
+   A function that takes a number, splits it and converts those splits to ascii.
 
 return:
 void
@@ -59,51 +61,51 @@ input;
 */
 void bcd2Asc(double bcd) {
 
-tous = huns = tens = ones = intDec = 0;
+    tous = huns = tens = ones = intDec = 0;
 
-int intPart = (int)bcd;
+    int intPart = (int)bcd;
 
-double dec = bcd - intPart;
+    double dec = bcd - intPart;
 
-// Finds the first decimal of the number.
-intDec = round(dec*10);
+    // Finds the first decimal of the number.
+    intDec = round(dec*10);
 
 
-// Counts the 100s, 10s, and 1s in the number.
-while (intPart >= 1000) {	
-    tous++;
-    intPart -= 100;
-}
+    // Counts the 100s, 10s, and 1s in the number.
+    while (intPart >= 1000) {	
+        tous++;
+        intPart -= 100;
+    }
 
-while (intPart >= 100) {	
-    huns++;
-    intPart -= 100;
-}
+    while (intPart >= 100) {	
+        huns++;
+        intPart -= 100;
+    }
 
-while (intPart >= 10) {	
-    tens++;
-    intPart -= 10;
-}
+    while (intPart >= 10) {	
+        tens++;
+        intPart -= 10;
+    }
 
-while (intPart >= 1) {
-    ones++;
-    intPart--;
-}
+    while (intPart >= 1) {
+        ones++;
+        intPart--;
+    }
 
-if (tous) {
-    huns = 0;
-}
+    if (tous) {
+        huns = 0;
+    }
 
-// Convert numbers to ascii.
-tous += 48;
-huns += 48;
-tens += 48;
-ones += 48;
-intDec += 48;	
+    // Convert numbers to ascii.
+    tous += 48;
+    huns += 48;
+    tens += 48;
+    ones += 48;
+    intDec += 48;	
 }
 
 /*
-A function that initializes the ADC to be used.
+   A function that initializes the ADC to be used.
 
 return:
 void
@@ -112,15 +114,15 @@ input:
 void
 
 */
-void ADCInit(){
+void ADCInit(void){
 
-ADCSRA  |= (1UL<<ADPS2) | (1UL<<ADPS1) | (1UL<<ADPS0) | (1UL<<ADEN);    
+    ADCSRA  |= (1UL<<ADPS2) | (1UL<<ADPS1) | (1UL<<ADPS0) | (1UL<<ADEN);    
 
-ADMUX |= (0UL<<REFS1) | (1UL<<REFS0);  
+    ADMUX |= (0UL<<REFS1) | (1UL<<REFS0);  
 }
 
 /*
-A function that reads from the ADC-channel specified as the parameter. 
+   A function that reads from the ADC-channel specified as the parameter. 
 
 return:
 @ADCW - What has been read on that channel.
@@ -131,87 +133,109 @@ input:
 */
 int readADC(int channel) {
 
-ADMUX = (ADMUX & 0Xf0) | (channel & 0x0f);
+    ADMUX = (ADMUX & 0Xf0) | (channel & 0x0f);
 
-ADCSRA |= (1UL<<ADSC); 
-while(((ADCSRA) & (1UL<< ADIF))==0); 
+    ADCSRA |= (1UL<<ADSC); 
+    while(((ADCSRA) & (1UL<< ADIF))==0); 
 
-return ADCW;
+    return ADCW;
 }
 
-void menuRight() {
-_delay_ms(10);
-if (!(++strInt == 5)) {
-    currStr = nxtStr;
-    nxtStr = strings[strInt];
-} else {
-    strInt = 0;
-    currStr = nxtStr;
-    nxtStr = strings[strInt];
-}
-}
-
-void menuLeft() {
-
-_delay_ms(10);
-if (!(--strInt == -1)) {
-    nxtStr = currStr;
-    currStr = strings[strInt];
-} else {
-    strInt = 4;
-    nxtStr = currStr;
-    currStr = strings[strInt];
+void menuRight(void) {
+    _delay_ms(10);
+    if (!(++strInt == 5)) {
+        currStr = nxtStr;
+        nxtStr = strings[strInt];
+    } else {
+        strInt = 0;
+        currStr = nxtStr;
+        nxtStr = strings[strInt];
+    }
 }
 
+void menuLeft(void) {
+
+    _delay_ms(10);
+    if (!(--strInt == -1)) {
+        nxtStr = currStr;
+        currStr = strings[strInt];
+    } else {
+        strInt = 4;
+        nxtStr = currStr;
+        currStr = strings[strInt];
+    }
+
 }
+
+void callback(Message msg) {
+    writeString("Callback");
+    while(1) {
+
+        blink();
+    }
+}
+
 
 /*
-The main loop that controlls the program flow. 
-*/
+   The main loop that controlls the program flow. 
+   */
 int main(void) {
 
-strInt = prev = -1;
+    strInt = prev = -1;
 
 
-strings[0] = "st1";
-strings[1] = "st2";
-strings[2] = "st3";
-strings[3] = "st4";
-strings[4] = "st5";
+    strings[0] = "st1";
+    strings[1] = "st2";
+    strings[2] = "st3";
+    strings[3] = "st4";
+    strings[4] = "st5";
 
-selStr = currStr = strings[0];
-nxtStr = strings[1];
+    selStr = currStr = strings[0];
+    nxtStr = strings[1];
 
-DDRD |= (1<<PIND4);
+    DDRD |= (1<<PIND4);
 
-int dead = 0;
-int adcVal = 0;
+    int dead = 0;
+    int adcVal = 0;
 
-// Initialize all the necessary parts.
-lcdInit();
-ADCInit();
-ledInit();
-joyStickInit();
-btnInit();
-Message_Init(4800);
+    // Initialize all the necessary parts.
+    lcdInit();
+    ADCInit();
+    ledInit();
+    joyStickInit();
+    btnInit();
+    Message_Init(4800);
+    Message_Register(0xff, callback);
 
+    Message msg;
+    //
+    //while(1) {
+    //    blink();
+    //    usart_write_string("00100000");
+    //    usart_write_string("\0");
+    //    _delay_ms(100);
+    //}
 
-// Loop as long as there is power in the MCU.
+    // Loop as long as there is power in the MCU.
     while(1) {
 
         clearDisplay();
-        
+
+
         if (!(PIND & (1<<7))) {
             dead = 1;
+            msg.type = 32;
+            strcpy(msg.args[0], "1");
+            Message_Send(msg);
         } else {
             dead = 0;
         }
+        
+        writeString(currStr);
 
-		writeString(currStr);
+        writeData(' ');
 
-        writeData (' ');
-
-		writeString(nxtStr);
+        writeString(nxtStr);
 
         moveCursor(0b10010000);
 
@@ -237,7 +261,7 @@ Message_Init(4800);
 
         moveCursor(0b10100000);
 
-		writeString("BTN: ");
+        writeString("BTN: ");
         writeData(PINC+48);
 
         if (dead) {

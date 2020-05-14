@@ -149,10 +149,8 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
            // msg_id = esp_mqtt_client_publish(client, "/topic/qos1", "data_3", 0, 1, 0);
            // ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
-           msg_id = esp_mqtt_client_subscribe(client, "zoomdrive/tests", 1);
+           msg_id = esp_mqtt_client_subscribe(client, "zoomdrive/#", 1);
             ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-           // msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 1);
            // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
            // msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
@@ -177,7 +175,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             printf("DATA=%.*s\r\n", event->data_len, event->data);
-            uart_write_bytes(UART_NUM_2, (const char *) event->data, strlen(event->data));
+            uart_write_bytes(UART_NUM_2, (const char *) event->data, event->data_len);
             break;
         case MQTT_EVENT_ERROR:
             ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -223,19 +221,22 @@ void uartInit(void) {
     uart_param_config(UART_NUM_2, &uart_config);
     uart_set_pin(UART_NUM_2, GPIO_NUM_17, GPIO_NUM_16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
-
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(1024);
 
     int msg_id = 0;
 
-
     while (1) {
         // Read data from the UART
         int len = uart_read_bytes(UART_NUM_2, data, 1024, 20 / portTICK_RATE_MS);
 
+
         if (len > 0) {
 
+
+            data[len] = '\0';
+
+            ESP_LOGI(TAG, "DATA READ: %s", data);
             int read = (int)*data;
             read &= 0b11100000;
 
@@ -243,29 +244,26 @@ void uartInit(void) {
                 case TOCAR:
                     msg_id = esp_mqtt_client_publish(client, "zoomdrive/to_car",
                             (const char*)data, 0, 0, 0);
-                    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+                    ESP_LOGI(TAG, "1sent publish successful, msg_id=%d", msg_id);
                     break;
                 case FROMCAR:
                     msg_id = esp_mqtt_client_publish(client, "zoomdrive/from_car",
                             (const char*)data, 0, 0, 0);
-                    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+                    ESP_LOGI(TAG, "2sent publish successful, msg_id=%d", msg_id);
 
                     break;
 
                 case INFO:
                     msg_id = esp_mqtt_client_publish(client, "zoomdrive/info", 
                             (const char*)data, 0, 0, 0);
-                    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+                    ESP_LOGI(TAG, "3sent publish successful, msg_id=%d", msg_id);
 
                     break;
                 default:
 
                     break;
-                    
             }
         }
-
-
     }
 }
 
