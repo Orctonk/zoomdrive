@@ -52,6 +52,7 @@ uint32_t Time_GetMillis(){
 }
 
 void Time_RegisterTimer(uint32_t cbperiod, TimerCallback cb) {
+    lastcb = ms;
     callback = cb;
     cbtime = cbperiod;
 }
