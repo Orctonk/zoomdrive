@@ -26,10 +26,6 @@
 #define LEFT_IN1 PIN7
 #define LEFT_IN2 PIN0
 
-
-//#define LEFT_PWM_PIN PIN5
-
-
 /*
  * Initialize motor
  */
