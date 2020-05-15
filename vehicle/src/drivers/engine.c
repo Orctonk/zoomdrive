@@ -82,7 +82,7 @@ void engine_turn(int8_t degree){
         PORTB |= (1<< RIGHT_IN1);
         PORTB &= ~(1<< RIGHT_IN2);
     }
-    else {
+    else if(degree == 0){
         OCR0A = speed; 
         OCR0B = speed; 
     }
