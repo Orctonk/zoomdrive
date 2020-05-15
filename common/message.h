@@ -14,12 +14,14 @@ typedef enum MessageType{
     DEADMAN         = (TOCAR)       |   3,
     HONK            = (TOCAR)       |   4,
     PING            = (TOCAR)       |   5,
-    EMSTATE         = (FROMCAR)     |   6,
-    SPEED           = (FROMCAR)     |   7,
-    DISTANCE        = (FROMCAR)     |   8,
-    PONG            = (FROMCAR)     |   9,
-    CARBUTTON       = (FROMCAR)     |   10,
-    HEARTBEAT       = (INFO)        |   11
+    HEARTBEAT       = (TOCAR)       |   6,
+    CSTSTRING       = (TOCAR)       |   7,
+    EMSTATE         = (FROMCAR)     |   8,
+    SPEED           = (FROMCAR)     |   9,
+    DISTANCE        = (FROMCAR)     |   10,
+    PONG            = (FROMCAR)     |   11,
+    CARBUTTON       = (FROMCAR)     |   12
+    
 } MessageType;
 
 #ifndef MESSAGE_ONLY_ENUM
