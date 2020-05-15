@@ -62,7 +62,7 @@ try:
     topicdict = {
         0b00100000 : "zoomdrive/to_car",
         0b01000000 : "zoomdrive/from_car",
-        0b10000000 : "zoomdrive/information"
+        0b10000000 : "zoomdrive/info"
     }
 
     #remain connected to broker
@@ -75,7 +75,7 @@ try:
         
         line = "".join(split)
         print("publishing \"{}\"".format(line))
-        client.publish(publish_topic, line)
+        client.publish(publish_topic, line  + "\n")
 
 
 # handle list index error (i.e. assume no data received)
