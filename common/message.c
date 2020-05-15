@@ -46,7 +46,6 @@ ISR(USART_RX_vect){
     else {
         Message msg;
         msg.type = topic;
-        done = false;
         for(int i = 0; i < MAXARGS && !done; i++){
             done = !readfield(buf);
             strcpy(msg.args[i],buf);
