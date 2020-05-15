@@ -1,5 +1,5 @@
 #include <avr/interrupt.h>
-#include "./time.h"
+#include "time.h"
 
 // ------------- PRIVATE -------------
 
@@ -9,10 +9,17 @@
 
 // Raw timer ticks since system startup
 static volatile uint32_t ms = 0;
+static volatile uint32_t cbtime = 0;
+static volatile uint32_t lastcb = 0;
+static TimerCallback callback = (void*)0;
 
 // Timer interrupt vector
 ISR(TIMER2_COMPA_vect){
     ms++;
+    if(callback != (void*)0 && ms-lastcb >= cbtime){
+        callback();
+        lastcb = ms;
+    }
 }
 
 // ------------- PUBLIC -------------
@@ -42,4 +49,9 @@ time Time_Get(){
 // Gets the number of seconds since system startup
 uint32_t Time_GetMillis(){
     return ms ;
+}
+
+void Time_RegisterTimer(uint32_t cbperiod, TimerCallback cb) {
+    callback = cb;
+    cbtime = cbperiod;
 }

@@ -9,6 +9,8 @@
 
 #include <stdint.h>
 
+typedef void(*TimerCallback)();
+
 // Type to store time
 typedef struct time {
     uint8_t hrs;
@@ -24,5 +26,7 @@ time Time_Get();
 
 // Gets the number of milliseconds since system startup
 uint32_t Time_GetMillis();
+
+void Time_RegisterTimer(uint32_t ms, TimerCallback);
 
 #endif // __TIME_H__
