@@ -1,6 +1,8 @@
 #include <avr/io.h>
 #include "define.h"
+#include "summer.h"
 #include "../common/message.h"
+#include "../common/time.h"
 #include <math.h>
 #include <string.h>
 #include <avr/interrupt.h>
@@ -16,6 +18,9 @@
 
 
 // Global variables
+static volatile int cBtn = 0;
+static volatile int lastCallback = 0;
+static volatile int callStop = 0;
 int reset = 0;
 int tous, huns, tens, ones, intDec, dist, tilt;
 int strInt, prev;
@@ -32,14 +37,14 @@ void blink(void) {
 }
 
 void ledInit(void) {
-    DDRC |= (1<<PINC5);
-    PORTC &= ~(1<<PINC5);
+    DDRC |= (1<<PINC5) | (1<<PINC4) | (1<<PINC3);
+    PORTC &= ~(1<<PINC5) | (1<<PINC4) | (1<<PINC3);
 }
 
 void btnInit(void) {
 
-    DDRD &= ~(1<<PIND5) | (1<<PIND6) | (1<<PIND7);
-    PORTD |= (1<<PIND5) | (1<<PIND6) | (1<<PIND7);
+    DDRD &= ~(1<<PIND3) | (1<<PIND6) | (1<<PIND7);
+    PORTD |= (1<<PIND3) | (1<<PIND6) | (1<<PIND7);
 }
 
 void joyStickInit(void) {
@@ -166,36 +171,51 @@ void menuLeft(void) {
 
 }
 
+void timeCallback(void) {
+    
+}
+
 void callback(Message msg) {
-    blink();
+    if (msg.type == CARBUTTON) {
+        if (cBtn) {
+            cBtn = 1;
+            summer_start();
+        } else {
+            cBtn = 0;
+            summer_stop();
+        }
+    } else if (msg.type == INFO) {
+
+    } else if (msg.type == HEARTBEAT) {
+        lastCallback = 0;
+    }
 }
 
 
 void vertDrive(int dir) {
     Message msg;
-    msg.type = 32;
+    msg.type = ENGINE_POWER;
     if (dir == 1) {
-        strcpy(msg.args[0], "1\n");
-    } else if (dir == -1) {
         strcpy(msg.args[0], "-1\n");
+    } else if (dir == -1) {
+        strcpy(msg.args[0], "1\n");
     } else {
         strcpy(msg.args[0], "0\n");
     }
-    Message_Send(msg);
+    Message_Send(msg, 1);
 }
 
 void horDrive(int dir) {
     Message msg;
-    msg.type = 33;
+    msg.type = HEADING;
     if (dir == 1) {
-        strcpy(msg.args[0], "1\n");
-    } else if (dir == -1) {
         strcpy(msg.args[0], "-1\n");
+    } else if (dir == -1) {
+        strcpy(msg.args[0], "1\n");
     } else {
         strcpy(msg.args[0], "0\n");
     }
-    Message_Send(msg);
-
+    Message_Send(msg, 1);
 }
 
 
@@ -206,7 +226,11 @@ int main(void) {
 
     strInt = prev = -1;
 
-
+/*
+     *  TEXT IDEAS:
+     *
+     *
+     * */
     strings[0] = "st1";
     strings[1] = "st2";
     strings[2] = "st3";
@@ -216,21 +240,25 @@ int main(void) {
     selStr = currStr = strings[0];
     nxtStr = strings[1];
 
-    DDRD |= (1<<PIND4);
 
     int dead = 0;
     int vertAdc = 0;
     int horAdc = 0;
+    int lH = 0;
+    int lV = 0;
+    int vert, hor;
 
     // Initialize all the necessary parts.
+    Time_Init();
     lcdInit();
+    summer_init();
     ADCInit();
     ledInit();
     joyStickInit();
     btnInit();
     Message_Init(4800);
     Message_Register(0xff, callback);
-    //
+
     // Loop as long as there is power in the MCU.
     while(1) {
 
@@ -241,30 +269,60 @@ int main(void) {
         } else {
             dead = 0;
         }
+
+        if (!(PINC)) {
+            Message msg;
+            msg.type = CSTSTRING;
+            strcpy(msg.args[0], selStr);
+            msg.args[0][strlen(selStr) + 1] = '\n';
+            Message_Send(msg, 1);
+            selStr = currStr;
+        } 
+
+        if (vertAdc >= 800) {
+            vert = 1;
+        } else if (vertAdc <= 200) {
+            vert = -1;
+        } else {
+            vert = 0;
+        }
         
-        writeString(currStr);
-
-        writeData(' ');
-
-        writeString(nxtStr);
-
-        moveCursor(0b10010000);
-
-        writeString("Selected: ");
-        writeString(selStr);
-
-        vertAdc = readADC(1);
-        horAdc = readADC(0);
+        if (horAdc >= 800) {
+            hor = 1;
+        } else if (horAdc <= 200) {
+            hor = -1;
+        } else {
+            hor = 0;
+        }
 
         if (dead) {
-            if (vertAdc >= 800) {
-                vertDrive(1);
-            } else if (vertAdc <= 200) {
-                vertDrive(-1);
-            } else if (horAdc >= 800) {
-                horDrive(1);
-            } else if (horAdc <= 200) {
-                horDrive(-1);
+
+            if (!(PIND & (1<<6))) {
+                Message msg;
+                msg.type = HONK;
+                Message_Send(msg, 0);
+            } 
+
+            if ((vert == 1) && (lV != vert)) {
+                lV = vert;
+                vertDrive(vert);
+            } else if ((vert == -1) && (lV != vert)) {
+                lV = vert;
+                vertDrive(vert);
+            } else if ((vert == 0) && (lV != vert)) {
+                lV = vert;
+                vertDrive(vert);
+            }
+
+            if ((hor == 1) && (lH != hor)) {
+                lH = hor;
+                horDrive(hor);
+            } else if ((hor == -1) && (lH != hor)) {
+                lH = hor;
+                horDrive(hor);
+            } else if ((hor == 0) && (lH != hor)) {
+                lH = hor;
+                horDrive(hor);
             }
 
         } else {
@@ -273,7 +331,6 @@ int main(void) {
             } else if (horAdc <= 200) {
                 menuLeft();
             } 
-
         }
 
         if (!dead && (vertAdc <= 200)) {
@@ -290,28 +347,37 @@ int main(void) {
             prev = 1;
         }
 
+        cli();
+
+        writeString(currStr);
+
+        writeData(' ');
+
+        writeString(nxtStr);
+
+        moveCursor(0b10010000);
+
+        writeString("Selected: ");
+        writeString(selStr);
+
+        vertAdc = readADC(1);
+        horAdc = readADC(0);
 
 
-        moveCursor(0b10100000);
-
-        writeString("BTN: ");
-        writeData(PINC+48);
+        writeData(' ');
 
         if (dead) {
             writeData('D');
         } else {
             writeData('N');
         }
+        writeData(cBtn + 48);
 
+        sei();
 
-        if (!(strInt == -1)) {
-            writeData(strInt+48);
-        } else {
-            writeData(48);
-        }
-        _delay_ms(100);
+        _delay_ms(50);
+
     }
 
     return 0;
 }
-
