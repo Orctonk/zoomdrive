@@ -3,7 +3,7 @@
 import serial
 import paho.mqtt.client as mqtt
 
-serialdev = '/dev/ttyUSB0'
+serialdev = '/dev/ttyACM1'
 broker = "tfe.iotwan.se"
 port = 1883
 subscribe_topic = "zoomdrive/#"
@@ -68,9 +68,12 @@ try:
     #remain connected to broker
     #read data from serial and publish
     while True:
-        line = ser.readline().strip()
-        publish_topic = topicdict[int(line.split(' ')[0]) & 0b11100000]
+        line = str(ser.readline().strip())
+        split = line.split(' ')
+        topic = split[0] = split[0].strip("b'")
+        publish_topic = topicdict[int(topic) & 0b11100000]
         
+        line = "".join(split)
         print("publishing \"{}\"".format(line))
         client.publish(publish_topic, line)
 
