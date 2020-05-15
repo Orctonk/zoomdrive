@@ -69,7 +69,7 @@ void Message_Init(uint16_t BAUD){
     sei();
 }
 
-void Message_Send(Message msg){
+void Message_Send(Message msg, uint8_t argc){
     char buf[4];
     itoa(msg.type,buf,10);
     char *c = &buf[0];
@@ -77,7 +77,7 @@ void Message_Send(Message msg){
         UART_PutChar((*c));
         c++;
     }
-    for(int i = 0; i < MAXARGS; i++){
+    for(int i = 0; i < argc; i++){
         if(msg.args[i][0] != '\0'){
             UART_PutChar(' ');
             c = &msg.args[i][0];

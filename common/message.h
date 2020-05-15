@@ -36,7 +36,7 @@ typedef struct Message {
 typedef void (*MessageCallback)(Message);
 
 void Message_Init(uint16_t BAUD);
-void Message_Send(Message msg);
+void Message_Send(Message msg, uint8_t argc);
 void Message_Register(MessageTopic topic,MessageCallback cb);
 #endif
 
