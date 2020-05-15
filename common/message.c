@@ -62,7 +62,7 @@ void Message_Init(uint16_t BAUD){
     PRR &= ~(1<<PRUSART0);
     UBRR0 = bsd;
 
-    UCSR0B = (1<<TXEN0)| (1<<RXEN0);
+    UCSR0B = (1<<TXEN0);
     UCSR0C = (1<<UCSZ00) | (1<<UCSZ01);
 
     UCSR0B |= (1<<RXCIE0);
@@ -93,4 +93,5 @@ void Message_Send(Message msg, uint8_t argc){
 void Message_Register(MessageTopic topic, MessageCallback cb){
     listen_topic = topic;
     callback = cb;
+    UCSR0B |= (1<<RXEN0);
 }
