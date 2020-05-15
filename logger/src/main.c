@@ -11,15 +11,61 @@ u8g_t u8g;
 char log[6][22] = {"1","2","3","4","5","6"};
 int nextlog = 1;
 
-void doLog(const char *msg){
+void doLog(const char *fmt,...){
+	va_list vargs;
+	va_start(vargs,fmt);
 	uint32_t t = Time_GetMillis();
-	snprintf(log[nextlog],"%s",msg);
+	vsnprintf(log[nextlog],22,fmt,vargs);
 	nextlog = (nextlog + 1) % 6;
 }
 
 void mqttCallback(Message msg){
-	time t = Time_Get();
+	switch(msg.type){
+	case ENGINE_POWER:
+		doLog("ENGINEPOWERSET %s", msg.args[0]);
+		break;
+	case HEADING:
+		doLog("ENGINEHEADINGSET %s", msg.args[0]);
+		break;
+	case EMBUTTON:
+		doLog("EMBREAKSET %s", msg.args[0]);
+		break;
+	case DEADMAN:
+		doLog("DEADMANSET %s %s", msg.args[0],msg.args[1]);
+		break;
+	case HONK:
+		doLog("HONKED!");
+		break;
+	case PING:
+		doLog("PING");
+		break;
+	case EMSTATE:
+		doLog("EMSTATEGET %s",msg.args[0]);
+		break;
+	case SPEED:
+		doLog("ENGINEPOWERGET %s", msg.args[0]);
+		break;
+	case DISTANCE:
+		doLog("CARDISTANCEGET %s", msg.args[0]);
+		break;
+	case PONG:
+		doLog("PONG");
+		break;
+	case CARBUTTON:
+		doLog("CARBTNPRESS");
+		break;
+	case HEARTBEAT:
+		doLog("HEARTBEAT");
+		break;
+	default:
+		break;
+	}
+}
 
+void timerCallback(){
+	Message msg;
+	msg.type = HEARTBEAT;
+	Message_Send(msg,0);
 }
 
 void draw(void) {
@@ -31,7 +77,10 @@ void draw(void) {
 
 int main(void)
 {
+	Message_Init(4800);
 	Time_Init();
+	Time_RegisterTimer(1000,timerCallback);
+	Message_Register(0xff,mqttCallback);
 	sei();
 	/*
 		CS: PORTB, Bit 2 --> PN(1,2)
@@ -45,7 +94,6 @@ int main(void)
 		time t = Time_Get();
 		if(t.secs != secs){
 			secs = t.secs;
-			doLog("hej");
 		}
 		u8g_FirstPage(&u8g);
 		do {
