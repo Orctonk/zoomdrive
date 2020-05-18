@@ -21,6 +21,8 @@
 static volatile int cBtn = 0;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
+static volatile int eBtn = 0;
+static volatile char *infoStr;
 int reset = 0;
 int tous, huns, tens, ones, intDec, dist, tilt;
 int strInt, prev;
@@ -180,20 +182,50 @@ void timeCallback(void) {
 }
 
 void callback(Message msg) {
-    if (msg.type == CARBUTTON) {
-        if (cBtn) {
-            cBtn = 1;
-            summer_start();
-        } else {
-            cBtn = 0;
-            summer_stop();
-        }
-    } else if (msg.type == INFO) {
 
-    } else if (msg.type == HEARTBEAT) {
-        lastCallback = 0;
-        PORTC &= ~(1<<PINC4);
+    cli();
+    switch(msg.type) {
+        case CARBUTTON:
+            if (!strcmp(msg.args[0], "1")) {
+                cBtn = 1;
+                summer_start();
+            } else {
+                cBtn = 0;
+                summer_stop();
+            }
+            break;
+
+        case INFO:
+            strcpy(infoStr, msg.args[0]);
+            break;
+
+        case HEARTBEAT:
+            lastCallback = 0;
+            PORTC &= ~(1<<PINC4);
+
+            if (!strcmp(msg.args[0], "0")) {
+                blink();
+                Message msg;
+                msg.type = HEARTBEAT;
+                strcpy(msg.args[0], "1");
+                Message_Send(msg, 1);
+            }
+            break;
+
+        case EMSTATE:
+            if (!strcmp(msg.args[0], "1")) {
+                eBtn = 1;
+                PORTC |= (1<<PINC3);
+            } else {
+                eBtn = 0;
+                PORTC &= ~(1<<PINC3);
+            } 
+            break;
+
+        default:
+            break;
     }
+    sei();
 }
 
 
@@ -223,16 +255,18 @@ void horDrive(int dir) {
     Message_Send(msg, 1);
 }
 
-void writeToScreen(int dead) {
+void writeToScreen(int dead, int gear) {
     writeString(currStr);
 
     writeData(' ');
 
     writeString(nxtStr);
+    writeString("  G:");
+    writeData(gear+48);
 
     moveCursor(0b10010000);
 
-    writeString("Selected: ");
+    writeString("Selected:");
     writeString(selStr);
 
     writeData(' ');
@@ -242,7 +276,12 @@ void writeToScreen(int dead) {
     } else {
         writeData('N');
     }
+    writeData(eBtn + 48);
     writeData(cBtn + 48);
+
+    moveCursor(0b10100000);
+    
+    writeString(infoStr);
 
 }
 
@@ -253,7 +292,7 @@ int main(void) {
 
     strInt = prev = -1;
 
-/*
+    /*
      *  TEXT IDEAS:
      *
      *
@@ -266,6 +305,7 @@ int main(void) {
 
     selStr = currStr = strings[0];
     nxtStr = strings[1];
+    infoStr = "0";
 
 
     int dead = 0;
@@ -274,11 +314,11 @@ int main(void) {
     int lH = 0;
     int lV = 0;
     int vert, hor;
-    int lD;
+    int gear = 1;
 
     // Initialize all the necessary parts.
     Time_Init();
-    Time_RegisterTimer(3000, timeCallback);
+    Time_RegisterTimer(600, timeCallback);
     lcdInit();
     summer_init();
     ADCInit();
@@ -297,17 +337,32 @@ int main(void) {
             dead = 1;
             Message msg;
             msg.type = DEADMAN;
-            strcpy(msg.args[0], "2");
+            strcpy(msg.args[0], "1");
             strcpy(msg.args[1], "1");
             Message_Send(msg, 2);
         } else if ((PIND & (1<<7)) && (dead != 0)) {
             dead = 0;
             Message msg;
             msg.type = DEADMAN;
-            strcpy(msg.args[0], "2");
+            strcpy(msg.args[0], "1");
             strcpy(msg.args[1], "0");
             Message_Send(msg, 2);
-        }
+        } 
+
+        if (!(PIND & (1<<6)) && (dead != 1)) {
+            Message msg;
+            msg.type = DEADMAN;
+            strcpy(msg.args[0], "1");
+            strcpy(msg.args[1], "1");
+            Message_Send(msg, 2);
+        } else if ((PIND & (1<<6)) && (dead != 0)) {
+            Message msg;
+            msg.type = DEADMAN;
+            strcpy(msg.args[0], "1");
+            strcpy(msg.args[1], "0");
+            Message_Send(msg, 2);
+        } 
+
 
         if (!(PINC)) {
             selStr = currStr;
@@ -389,14 +444,24 @@ int main(void) {
                 }
                 prev = 1;
             }
+            
+            if (!(PIND & (1<<3))) {
+                if (++gear == 4) {
+                    gear = 1;
+
+                }
+
+                //Message msg;
+                //msg.type = GEAR;
+                //char c = gear;
+                //strcpy(msg.args[0], c);
+                //Message_Send(msg);
+            }
         }
 
 
-        cli();
 
-        writeToScreen(dead);
-
-        sei();
+        writeToScreen(dead, gear);
 
         _delay_ms(50);
 
