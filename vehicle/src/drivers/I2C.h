@@ -20,7 +20,7 @@
 /*
  * Initialize 
  */
-void I2C_init();
+void I2C_init(void);
 
 /*
  * Turn on or off the green lamp.
@@ -39,11 +39,11 @@ void yellow_lamp(bool lamp_switch);
 /*
  * Return true if the front distance sensor is within 15cm of an object. 
  */
-bool front_within_15cm(); 
+uint16_t front_distance(void); 
 
 /*
  * Return true if the back distance sensor is within 15cm of an object. 
  */
-bool back_within_15com();
+uint16_t back_distance(void);
 
 #endif

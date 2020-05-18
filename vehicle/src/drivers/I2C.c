@@ -15,12 +15,11 @@
 /*
  * Initialize 
  */
-void I2C_init(){
+void I2C_init(void){
     i2c_init();
 
 }
 
-//THe fuk funkar knappen?? 
 
 /*
  * Turn on or off the green lamp.
@@ -79,22 +78,58 @@ void yellow_lamp(bool lamp_switch){
 }
 
 /*
- * Return true if the front distance sensor is within 15cm of an object. 
- */
-bool front_within_15cm(){
-	if( i2c_start((F_SENSOR_SLAVE_ADRESS<<1)|I2C_WRITE ) != 0){
+ *
+ */ 	
+void button_pressed(void){
+if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
 		i2c_stop();
 		return 0;
 	}
-	
-	
+	uint8_t data = i2c_readAck(); 
+		// |= (1<< PIN5);				Är knappen hög? 
+
+
+
 }
 
-/*
- * Return true if the back distance sensor is within 15cm of an object. 
- */
-bool back_within_15com(){
+uint16_t front_distance(void){
+	if( i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
+		i2c_stop();
+		return 0;
+	}
+	if( i2c_write(0x51) != 0) {
+		i2c_stop();
+		return 0;
+	}
+	if( i2c_rep_start((F_SENSOR_SLAVE_ADRESS)|I2C_READ ) != 0){
+		i2c_stop();
+		return 0;
+	}
+	uint16_t distance = (i2c_readAck()<<8);
+	distance |= i2c_readAck();
+	i2c_stop();
 
-	return false; 
+	return distance; 
+}
+
+
+uint16_t back_distance(void){
+	if( i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
+		i2c_stop();
+		return 0;
+	}
+	if( i2c_write(0x51) != 0) {
+		i2c_stop();
+		return 0;
+	}
+	if( i2c_rep_start((B_SENSOR_SLAVE_ADRESS)|I2C_READ ) != 0){
+		i2c_stop();
+		return 0;
+	}
+	uint16_t distance = (i2c_readAck()<<8);
+	distance |= i2c_readAck();
+	i2c_stop();
+
+	return distance; 
 }
 
