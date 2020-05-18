@@ -172,6 +172,10 @@ void menuLeft(void) {
 }
 
 void timeCallback(void) {
+    if (lastCallback) {
+        PORTC |= (1<<PINC4);
+    }
+    lastCallback = 1;
     
 }
 
@@ -188,6 +192,7 @@ void callback(Message msg) {
 
     } else if (msg.type == HEARTBEAT) {
         lastCallback = 0;
+        PORTC &= ~(1<<PINC4);
     }
 }
 
@@ -196,11 +201,11 @@ void vertDrive(int dir) {
     Message msg;
     msg.type = ENGINE_POWER;
     if (dir == 1) {
-        strcpy(msg.args[0], "-1\n");
+        strcpy(msg.args[0], "-1");
     } else if (dir == -1) {
-        strcpy(msg.args[0], "1\n");
+        strcpy(msg.args[0], "1");
     } else {
-        strcpy(msg.args[0], "0\n");
+        strcpy(msg.args[0], "0");
     }
     Message_Send(msg, 1);
 }
@@ -209,15 +214,37 @@ void horDrive(int dir) {
     Message msg;
     msg.type = HEADING;
     if (dir == 1) {
-        strcpy(msg.args[0], "-1\n");
+        strcpy(msg.args[0], "-1");
     } else if (dir == -1) {
-        strcpy(msg.args[0], "1\n");
+        strcpy(msg.args[0], "1");
     } else {
-        strcpy(msg.args[0], "0\n");
+        strcpy(msg.args[0], "0");
     }
     Message_Send(msg, 1);
 }
 
+void writeToScreen(int dead) {
+    writeString(currStr);
+
+    writeData(' ');
+
+    writeString(nxtStr);
+
+    moveCursor(0b10010000);
+
+    writeString("Selected: ");
+    writeString(selStr);
+
+    writeData(' ');
+
+    if (dead) {
+        writeData('D');
+    } else {
+        writeData('N');
+    }
+    writeData(cBtn + 48);
+
+}
 
 /*
    The main loop that controlls the program flow. 
@@ -247,9 +274,11 @@ int main(void) {
     int lH = 0;
     int lV = 0;
     int vert, hor;
+    int lD;
 
     // Initialize all the necessary parts.
     Time_Init();
+    Time_RegisterTimer(3000, timeCallback);
     lcdInit();
     summer_init();
     ADCInit();
@@ -264,20 +293,33 @@ int main(void) {
 
         clearDisplay();
 
-        if (!(PIND & (1<<7))) {
+        if (!(PIND & (1<<7)) && (dead != 1)) {
             dead = 1;
-        } else {
+            Message msg;
+            msg.type = DEADMAN;
+            strcpy(msg.args[0], "2");
+            strcpy(msg.args[1], "1");
+            Message_Send(msg, 2);
+        } else if ((PIND & (1<<7)) && (dead != 0)) {
             dead = 0;
+            Message msg;
+            msg.type = DEADMAN;
+            strcpy(msg.args[0], "2");
+            strcpy(msg.args[1], "0");
+            Message_Send(msg, 2);
         }
 
         if (!(PINC)) {
+            selStr = currStr;
             Message msg;
             msg.type = CSTSTRING;
             strcpy(msg.args[0], selStr);
-            msg.args[0][strlen(selStr) + 1] = '\n';
+            //msg.args[0][strlen(selStr) + 1] = '\n';
             Message_Send(msg, 1);
-            selStr = currStr;
         } 
+
+        vertAdc = readADC(1);
+        horAdc = readADC(0);
 
         if (vertAdc >= 800) {
             vert = 1;
@@ -294,6 +336,14 @@ int main(void) {
         } else {
             hor = 0;
         }
+
+        /*
+         * HOW TO HONK TO REMOTE-1??
+         * THIRD BUTTON?????
+         *
+         *
+         *
+        */
 
         if (dead) {
 
@@ -326,52 +376,25 @@ int main(void) {
             }
 
         } else {
-            if (horAdc >= 800) {
+            if (!dead && (vertAdc <= 200)) {
                 menuRight();
-            } else if (horAdc <= 200) {
+                if (prev == 1) {
+                    menuRight();
+                }
+                prev = 0;
+            } else if (!dead && (vertAdc >= 800)) {
                 menuLeft();
-            } 
+                if (prev == 0) {
+                    menuLeft();
+                }
+                prev = 1;
+            }
         }
 
-        if (!dead && (vertAdc <= 200)) {
-            menuRight();
-            if (prev == 1) {
-                menuRight();
-            }
-            prev = 0;
-        } else if (!dead && (vertAdc >= 800)) {
-            menuLeft();
-            if (prev == 0) {
-                menuLeft();
-            }
-            prev = 1;
-        }
 
         cli();
 
-        writeString(currStr);
-
-        writeData(' ');
-
-        writeString(nxtStr);
-
-        moveCursor(0b10010000);
-
-        writeString("Selected: ");
-        writeString(selStr);
-
-        vertAdc = readADC(1);
-        horAdc = readADC(0);
-
-
-        writeData(' ');
-
-        if (dead) {
-            writeData('D');
-        } else {
-            writeData('N');
-        }
-        writeData(cBtn + 48);
+        writeToScreen(dead);
 
         sei();
 
