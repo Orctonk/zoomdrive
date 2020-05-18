@@ -35,7 +35,7 @@ bool dm2;                // Deadmam's grip from controller 2
 /*
  * Initialze device by calling all initialization functions 
  */
-void init(){  
+void init(void){  
     SPI_init();
     LCD_init();
     summer_init(); 
@@ -128,21 +128,34 @@ void callback(Message msg){
 int main(void) {
     init();
 
+    LCD_set_cursor(0x10);
+    LCD_write_string("Speed:");
+
     Message_Init(4800);
     Message_Register(0xff,callback);
    
     while(1){
         if(timer_get_time() -last_up > 1){
-            Message update; 
-            update.type = SPEED;
-            itoa(engine_get_speed(), update.args[0], 10);
-            Message_Send(update, 0);
+            Message speed_update; 
+
+            speed_update.type = SPEED;
+            itoa(engine_get_speed(), speed_update.args[0], 10);
+            Message_Send(speed_update, 0);
+
+            Message distance_update; 
+
+            distance_update.type = DISTANCE;
+            itoa(front_distance(), distance_update.args[0], 10);
+            itoa(back_distance(), distance_update.args[1], 10);
+            Message_Send(distance_update, 0);
+
+            //LCD_set_cursor(0x16); // Display information 
         }
 
         if (timer_get_time() - last_hb > 3){
             engine_set_speed(0);
         }
-        
+
         if(locked){
             LED_PORT |= (1<<LED_PIN);
         }
@@ -151,11 +164,12 @@ int main(void) {
         }
 
         if(engine_get_speed() == -1){
-            //If the vhiecle is backing, 
+            //If the vehicle is backing, 
             summer_start(); 
             yellow_lamp(1); 
         }
         else if(engine_get_speed() > 0){
+            //If the vehicle is driving forward
             green_lamp(1);
         }
         else {
