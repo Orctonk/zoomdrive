@@ -16,11 +16,12 @@ typedef enum MessageType{
     PING            = (TOCAR)       |   5,
     HEARTBEAT       = (TOCAR)       |   6,
     CSTSTRING       = (TOCAR)       |   7,
-    EMSTATE         = (FROMCAR)     |   8,
-    SPEED           = (FROMCAR)     |   9,
-    DISTANCE        = (FROMCAR)     |   10,
-    PONG            = (FROMCAR)     |   11,
-    CARBUTTON       = (FROMCAR)     |   12
+    GEAR            = (TOCAR)       |   8,
+    EMSTATE         = (FROMCAR)     |   9,
+    SPEED           = (FROMCAR)     |   10,
+    DISTANCE        = (FROMCAR)     |   11,
+    PONG            = (FROMCAR)     |   12,
+    CARBUTTON       = (FROMCAR)     |   13
     
 } MessageType;
 

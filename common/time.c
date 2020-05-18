@@ -25,7 +25,7 @@ ISR(TIMER2_COMPA_vect){
 // ------------- PUBLIC -------------
 
 // Initializes time module
-void Time_Init(){
+void Time_Init(void){
     // Start timer 
     TCCR2B = (0<<CS20)|(0<<CS21)|(1<<CS22);
     TCCR2A = (1<<WGM21);
@@ -34,7 +34,7 @@ void Time_Init(){
 }
 
 // Gets the time since system startup
-time Time_Get(){
+time Time_Get(void){
     time t;
     uint32_t secs = Time_GetMillis() / 1000; // Get seconds
     // Reduce stepwise
@@ -47,7 +47,7 @@ time Time_Get(){
 }
 
 // Gets the number of seconds since system startup
-uint32_t Time_GetMillis(){
+uint32_t Time_GetMillis(void){
     return ms ;
 }
 

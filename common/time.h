@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-typedef void(*TimerCallback)();
+typedef void(*TimerCallback)(void);
 
 // Type to store time
 typedef struct time {
@@ -19,13 +19,13 @@ typedef struct time {
 } time;
 
 // Initializes time module
-void Time_Init();
+void Time_Init(void);
 
 // Gets the time since system startup
-time Time_Get();
+time Time_Get(void);
 
 // Gets the number of milliseconds since system startup
-uint32_t Time_GetMillis();
+uint32_t Time_GetMillis(void);
 
 void Time_RegisterTimer(uint32_t ms, TimerCallback);
 
