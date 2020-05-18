@@ -20,7 +20,7 @@
 /*
  * Initialize 
  */
-void init();
+void I2C_init();
 
 /*
  * Turn on or off the green lamp.

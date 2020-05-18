@@ -15,7 +15,7 @@
 /*
  * Initialize 
  */
-void init(){
+void I2C_init(){
     i2c_init();
 
 }
@@ -79,16 +79,21 @@ void yellow_lamp(bool lamp_switch){
 }
 
 /*
- * Return true if the distance sensors are within 15cm of an object. 
+ * Return true if the front distance sensor is within 15cm of an object. 
  */
-bool within_15cm(){
+bool front_within_15cm(){
+	if( i2c_start((F_SENSOR_SLAVE_ADRESS<<1)|I2C_WRITE ) != 0){
+		i2c_stop();
+		return 0;
+	}
+	
+	
+}
 
-	// SRF02
-
-	// Skriv till plats 0 
-	// 0x51 
-
-	//Läs från 2 och 3, cm
+/*
+ * Return true if the back distance sensor is within 15cm of an object. 
+ */
+bool back_within_15com(){
 
 	return false; 
 }
