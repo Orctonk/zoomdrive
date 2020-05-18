@@ -10,7 +10,8 @@
 
 #include "engine.h"
 
-int speed = 200; 
+int duty_cicle = 200;   
+int speed = 0; 
 
 /*
  * Initialize motor
@@ -18,8 +19,8 @@ int speed = 200;
 void engine_init(){
     PWM_DDR |= (1<< RIGHT_PWM_PIN);
 	TCCR0B = (1<< WGM02);
-	OCR0A = speed; 
-    OCR0B = speed; 
+	OCR0A = duty_cicle; 
+    OCR0B = duty_cicle; 
 	TCCR0A = (1<<COM0A0)|(1<<WGM00)|(1<<COM0B0);
 
     DDRB |= (1<< RIGHT_IN1);
@@ -31,10 +32,10 @@ void engine_init(){
 /*
  * Set speed of viecle.
  * 
- * speed: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
+ * power: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
  */
 void engine_set_speed(int8_t power){
-    
+    speed = power; 
     if(power == 1){
         TCCR0B |= (1<< CS02);
 
@@ -67,14 +68,14 @@ void engine_set_speed(int8_t power){
 void engine_turn(int8_t degree){
     if(degree == 1){
         OCR0A = 0; 
-        OCR0B = speed; 
+        OCR0B = duty_cicle; 
         TCCR0B |= (1<< CS02);
 
         PORTD |= (1<< LEFT_IN1);
         PORTB &= ~(1<< LEFT_IN2);
     }
     else if(degree == -1){
-        OCR0A = speed; 
+        OCR0A = duty_cicle; 
         OCR0B = 0; 
         TCCR0B |= (1<< CS02);
 
@@ -82,7 +83,16 @@ void engine_turn(int8_t degree){
         PORTB &= ~(1<< RIGHT_IN2);
     }
     else if(degree == 0){
-        OCR0A = speed; 
-        OCR0B = speed; 
+        OCR0A = duty_cicle; 
+        OCR0B = duty_cicle; 
+    }
+
+    /*
+    * Get the speed of the vheicle.  
+    * 
+    * Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
+    */
+    int engine_get_speed(){
+        return speed; 
     }
 }

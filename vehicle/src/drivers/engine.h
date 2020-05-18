@@ -45,4 +45,11 @@ void engine_set_speed(int8_t speed);
  */
 void engine_turn(int8_t degree);
 
+/*
+ * Get the speed of the vheicle.  
+ * 
+ * Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
+ */
+int engine_get_speed();
+
 #endif 
