@@ -73,7 +73,7 @@ program: $(TARGET_HEX)
 .PHONY: clean
 
 clean:
-	$(RM) -r $(OUT_DIR)
+	$(RM) -r $(OUT_DIR) build
 
 uart: 
 	$(UART) $(SPORT) -b $(BAUD)
