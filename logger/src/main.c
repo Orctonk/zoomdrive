@@ -1,71 +1,79 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
+//#include <string.h>
+//#include <stdlib.h>
+#include <stdio.h>
+
 #include "oled/u8g.h"
 #include "message.h"
 #include "time.h"
-#include "string.h"
-#include "stdlib.h"
-#include <stdio.h>
+#include "emdriver.h"
+#include "sddriver.h"
+#include "spi.h"
 
 u8g_t u8g;
 char log[6][22] = {"1","2","3","4","5","6"};
 int nextlog = 1;
 
-void doLog(const char *fmt,...){
+void doLog(MessageType type,const char *fmt,...){
 	va_list vargs;
 	va_start(vargs,fmt);
 	uint32_t t = Time_GetMillis();
 	vsnprintf(log[nextlog],22,fmt,vargs);
+	SD_Write("%lu %u %s\n", t, type, log[nextlog]);
 	nextlog = (nextlog + 1) % 6;
 }
 
 void mqttCallback(Message msg){
 	switch(msg.type){
 	case ENGINE_POWER:
-		doLog("ENGINEPOWERSET %s", msg.args[0]);
+		doLog(msg.type,"ENGINEPOWERSET %s", msg.args[0]);
 		break;
 	case HEADING:
-		doLog("ENGINEHEADINGSET %s", msg.args[0]);
+		doLog(msg.type,"ENGINEHEADINGSET %s", msg.args[0]);
 		break;
 	case EMBUTTON:
-		doLog("EMBREAKSET %s", msg.args[0]);
+		doLog(msg.type,"EMBREAKSET %s", msg.args[0]);
 		break;
 	case DEADMAN:
-		doLog("DEADMANSET %s %s", msg.args[0],msg.args[1]);
+		doLog(msg.type,"DEADMANSET %s %s", msg.args[0],msg.args[1]);
 		break;
 	case HONK:
-		doLog("HONKED!");
+		doLog(msg.type,"HONKED!");
 		break;
 	case PING:
-		doLog("PING");
+		doLog(msg.type,"PING");
 		break;
 	case EMSTATE:
-		doLog("EMSTATEGET %s",msg.args[0]);
+		doLog(msg.type,"EMSTATEGET %s",msg.args[0]);
 		break;
 	case SPEED:
-		doLog("ENGINEPOWERGET %s", msg.args[0]);
+		doLog(msg.type,"ENGINEPOWERGET %s", msg.args[0]);
 		break;
 	case DISTANCE:
-		doLog("CARDISTANCEGET %s", msg.args[0]);
+		doLog(msg.type,"CARDISTANCEGET %s", msg.args[0]);
 		break;
 	case PONG:
-		doLog("PONG");
+		doLog(msg.type,"PONG");
 		break;
 	case CARBUTTON:
-		doLog("CARBTNPRESS");
+		doLog(msg.type,"CARBTNPRESS");
 		break;
 	case HEARTBEAT:
-		doLog("HEARTBEAT");
+		doLog(msg.type,"HEARTBEAT %s", msg.args[0]);
 		break;
 	default:
 		break;
 	}
 }
 
-void timerCallback(){
+void timerCallback(void){
+	EM_Check();
 	Message msg;
 	msg.type = HEARTBEAT;
-	Message_Send(msg,0);
+	msg.args[0][0] = '0';
+	msg.args[0][1] = '\0';
+	Message_Send(msg,1);
 }
 
 void draw(void) {
@@ -75,12 +83,22 @@ void draw(void) {
     }
 }
 
-int main(void)
-{
-	Message_Init(4800);
+void init(void){
+	Message_Init(9600);
 	Time_Init();
 	Time_RegisterTimer(1000,timerCallback);
 	Message_Register(0xff,mqttCallback);
+	EM_Init();
+	u8g_InitSPI(&u8g, &u8g_dev_ssd1306_128x64_2x_sw_spi, PN(1, 6), PN(1, 7), PN(1, 2), PN(1, 1), U8G_PIN_NONE);
+	SPI_Init();
+	SD_Init();
+
+	DDRD |= (1<<PIN2);
+}
+
+int main(void)
+{
+	init();
 	sei();
 	/*
 		CS: PORTB, Bit 2 --> PN(1,2)
@@ -88,17 +106,15 @@ int main(void)
 		SCK: PORTB, Bit 5 --> PN(1,5)
 		MOSI: PORTB, Bit 3 --> PN(1,3)
 	*/
-	u8g_InitSPI(&u8g, &u8g_dev_ssd1306_128x64_2x_hw_spi, PN(1, 5), PN(1, 3), PN(1, 2), PN(1, 1), U8G_PIN_NONE);
-	uint8_t secs = 0;
+	
 	for(;;){
-		time t = Time_Get();
-		if(t.secs != secs){
-			secs = t.secs;
-		}
+		cli();
 		u8g_FirstPage(&u8g);
 		do {
 			draw();
+		//} while(1);
 		} while ( u8g_NextPage(&u8g) );
-		u8g_Delay(100);
+		sei();
+		u8g_Delay(1000);
 	} 
 }
