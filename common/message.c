@@ -23,32 +23,39 @@ static int UART_PutChar(char c){
 	return 0;
 }
 
-bool readfield(char *buf){
-    for(int j = 0; j<ARGSIZE - 1; j++){
+static void UART_ReadLine(char *buf){
+    for(int j = 0; j<ARGSIZE*4 - 1; j++){
         buf[j] = UART_GetChar();
-        if(buf[j] == ' '){
-            buf[j] = '\0';
-            return true;
-        } else if (buf[j] == '\n'){
-            buf[j] = '\0';
-            return false;
+        if(buf[j] == '\n'){
+            return;
+        }
+    }
+}
+
+int readfield(const char* src, int start, char *dest){
+    for(int j = 0; j<ARGSIZE - 1; j++){
+        dest[j] = src[start+j];
+        if(dest[j] == ' '){
+            dest[j] = '\0';
+            return start + j + 1;
+        } else if(dest[j] == '\n'){
+            dest[j] = '\0';
+            return -1;
         }
     }
 }
 
 ISR(USART_RX_vect){
-    char buf[ARGSIZE];
-    bool done = !readfield(buf);
-    uint8_t topic = atoi(buf);
-    if(!(topic & listen_topic)){
-        while(!done && UART_GetChar() != '\n');
-    }
-    else {
+    char buf[ARGSIZE*4];
+    char arg[ARGSIZE];
+    UART_ReadLine(buf);
+    int pos = readfield(buf,0,arg);
+    uint8_t topic = atoi(arg);
+    if(topic & listen_topic){
         Message msg;
         msg.type = topic;
-        for(int i = 0; i < MAXARGS && !done; i++){
-            done = !readfield(buf);
-            strcpy(msg.args[i],buf);
+        for(int i = 0; i < MAXARGS && pos != -1; i++){
+            pos = readfield(buf,pos,msg.args[i]);
         }
         if(callback != NULL)
             callback(msg);
