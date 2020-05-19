@@ -14,7 +14,7 @@
 
 #include "drivers/SPI.h"
 #include "drivers/LCD.h"
-#include "drivers/timer.h"
+#include "time.h"
 #include "drivers/summer.h"
 #include "drivers/engine.h"
 #include "drivers/I2C.h"
@@ -25,8 +25,8 @@
 #define LED_DDR DDRC
 
 //Variable declerations
-int32_t last_hb;         //Last recieved heartbeat.
-int32_t last_up;
+uint32_t last_hb = 0;         //Last recieved heartbeat.
+uint32_t last_up = 0;
 
 bool locked;             //Locked if in emergency stop mode.
 bool dm1;                // Deadmam's grip from controller 1
@@ -41,12 +41,12 @@ void init(void){
     summer_init(); 
     engine_init();
     I2C_init();
-    timer_init();
+    Time_Init();
 
     LED_DDR|=(1<<LED_PIN);
 	LED_PORT&=~(1<<LED_PIN);
 
-    locked = true; 
+    locked = false; 
     dm1 = false;
     dm2 = false; 
 }
@@ -68,11 +68,11 @@ void callback(Message msg){
         Message_Send(reply, 0); 
     }
     else if(msg.type == DEADMAN){
-      if(msg.args[0] == 0){
-          dm1 = msg.args[1];
+      if(strcmp(msg.args[0],"1" )== 0){
+          dm1 = atoi(msg.args[1]);
       }
-      else if(msg.args[0] == 1){
-          dm2 = msg.args[1];
+      else if(strcmp(msg.args[0],"2" )== 0){
+          dm2 = atoi(msg.args[1]);
       }
       if(dm1 && dm2){
           //If both controllers deadman's grip is activated the vheicle should stop.
@@ -86,7 +86,7 @@ void callback(Message msg){
     }
     else if(msg.type == EMBUTTON){
         //If the emergency button has been pressed, activate emergency mode.
-        if(msg.args[0] == 1){
+        if(strcmp(msg.args[0],"1" )== 0){
             //Lock
             locked = true; 
             engine_set_speed(0);   
@@ -96,10 +96,10 @@ void callback(Message msg){
             reply.type = EMSTATE; 
             Message_Send(reply, 0);
         }
-        else if(msg .args[0] == 0){
+        else if(strcmp(msg.args[0],"0" )== 0){
             //Unlock
             locked = false; 
-            CD_set_cursor(0x00);
+            LCD_set_cursor(0x00);
             LCD_write_string("      "); 
         }
     }
@@ -118,7 +118,7 @@ void callback(Message msg){
     }
     else if(msg.type == HEARTBEAT){
         //Save time of heartbeat. 
-        last_hb = timer_get_time();
+        last_hb = Time_GetMillis();
     }
 }
 
@@ -135,25 +135,28 @@ int main(void) {
     Message_Register(0xff,callback);
    
     while(1){
-        if(timer_get_time() -last_up > 1){
+       if(Time_GetMillis() -last_up > 2000){
             Message speed_update; 
 
             speed_update.type = SPEED;
             itoa(engine_get_speed(), speed_update.args[0], 10);
-            Message_Send(speed_update, 0);
-
+            Message_Send(speed_update, 1);
+           
             Message distance_update; 
 
             distance_update.type = DISTANCE;
-            itoa(front_distance(), distance_update.args[0], 10);
-            itoa(back_distance(), distance_update.args[1], 10);
+            //itoa(front_distance(), distance_update.args[0], 10);
+            //itoa(back_distance(), distance_update.args[1], 10);
             Message_Send(distance_update, 0);
 
-            //LCD_set_cursor(0x16); // Display information 
+            last_up = Time_GetMillis();
+
+            LCD_set_cursor(0x16); // Display information 
         }
 
-        if (timer_get_time() - last_hb > 3){
-            engine_set_speed(0);
+        if (Time_GetMillis() - last_hb > 3000){
+            locked = true; 
+            summer_beep();
         }
 
         if(locked){
@@ -166,15 +169,16 @@ int main(void) {
         if(engine_get_speed() == -1){
             //If the vehicle is backing, 
             summer_start(); 
-            yellow_lamp(1); 
+            //yellow_lamp(1); 
         }
-        else if(engine_get_speed() > 0){
-            //If the vehicle is driving forward
-            green_lamp(1);
-        }
+        // else if(engine_get_speed() > 0){
+        //     //If the vehicle is driving forward
+        //     //green_lamp(1);
+        // }
         else {
             summer_stop();
-            green_lamp(0);
-            yellow_lamp(0); 
+            // green_lamp(0);
+            // yellow_lamp(0); 
         }
+    }
 }
