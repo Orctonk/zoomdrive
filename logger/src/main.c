@@ -8,7 +8,7 @@
 #include "message.h"
 #include "time.h"
 #include "emdriver.h"
-#include "sddriver.h"
+//#include "sddriver.h"
 #include "spi.h"
 
 u8g_t u8g;
@@ -20,7 +20,7 @@ void doLog(MessageType type,const char *fmt,...){
 	va_start(vargs,fmt);
 	uint32_t t = Time_GetMillis();
 	vsnprintf(log[nextlog],22,fmt,vargs);
-	SD_Write("%lu %u %s\n", t, type, log[nextlog]);
+	//SD_Write("%lu %u %s\n", t, type, log[nextlog]);
 	nextlog = (nextlog + 1) % 6;
 }
 
@@ -68,7 +68,6 @@ void mqttCallback(Message msg){
 }
 
 void timerCallback(void){
-	EM_Check();
 	Message msg;
 	msg.type = HEARTBEAT;
 	msg.args[0][0] = '0';
@@ -89,9 +88,10 @@ void init(void){
 	Time_RegisterTimer(1000,timerCallback);
 	Message_Register(0xff,mqttCallback);
 	EM_Init();
+	
 	u8g_InitSPI(&u8g, &u8g_dev_ssd1306_128x64_2x_sw_spi, PN(1, 6), PN(1, 7), PN(1, 2), PN(1, 1), U8G_PIN_NONE);
-	SPI_Init();
-	SD_Init();
+	// SPI_Init();
+	// SD_Init();
 
 	DDRD |= (1<<PIN2);
 }
@@ -106,15 +106,17 @@ int main(void)
 		SCK: PORTB, Bit 5 --> PN(1,5)
 		MOSI: PORTB, Bit 3 --> PN(1,3)
 	*/
-	
+	uint32_t millis = Time_GetMillis();
+	uint32_t curtime;
 	for(;;){
-		cli();
+		Message_Update();
+		EM_Check();
 		u8g_FirstPage(&u8g);
 		do {
+			Time_Update();
+			cli();
 			draw();
-		//} while(1);
+			sei();
 		} while ( u8g_NextPage(&u8g) );
-		sei();
-		u8g_Delay(1000);
 	} 
 }
