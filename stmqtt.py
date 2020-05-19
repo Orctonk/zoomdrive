@@ -18,13 +18,9 @@ def on_connect(client,userdata,flags,rc):
     client.subscribe(subscribe_topic)
 
 def on_message(client, userdata, msg):
-    print("recieved message: \"{}\" from topic \"{}\"".format(msg.payload,msg.topic))
-    ser.write(msg.payload + "\n")
-    ser.flush()
-
-def on_publish(client,userdata,mid):
-    print("Published {}".format(mid))
-
+    rec = msg.payload.decode();
+    print("recieved message: \"{}\" from topic \"{}\"".format(rec,msg.topic))
+    ser.write((rec + "\n").encode())
 
 #called on exit
 #close serial, disconnect MQTT
@@ -51,7 +47,6 @@ try:
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.on_publish = on_publish
 
     client.username_pw_set("student","Hbrygga")
 
@@ -68,14 +63,14 @@ try:
     #remain connected to broker
     #read data from serial and publish
     while True:
-        line = str(ser.readline().strip())
+        line = ser.readline().decode().strip()
         split = line.split(' ')
-        topic = split[0] = split[0].strip("b'")
+        topic = split[0] 
         publish_topic = topicdict[int(topic) & 0b11100000]
         
         line = split[0]
         for arg in split[1:]:
-            line = line + " " + arg.strip("'")
+            line = line + " " + arg
         print("publishing \"{}\"".format(line))
         client.publish(publish_topic, line)
 
