@@ -10,7 +10,7 @@ static volatile MessageTopic listen_topic;
 static volatile MessageCallback callback;
 static volatile bool skip;
 
-static char UART_GetChar(){
+static char UART_GetChar(void){
     while ( !(UCSR0A & (1<<RXC0)) ) {}
 	/* Get and return received data from buffer */
 	return UDR0;

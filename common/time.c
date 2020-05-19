@@ -11,7 +11,7 @@
 static volatile uint32_t ms = 0;
 static volatile uint32_t cbtime = 0;
 static volatile uint32_t lastcb = 0;
-static TimerCallback callback = (void*)0;
+static volatile TimerCallback callback = (void*)0;
 
 // Timer interrupt vector
 ISR(TIMER2_COMPA_vect){
