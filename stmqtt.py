@@ -19,7 +19,7 @@ def on_connect(client,userdata,flags,rc):
 
 def on_message(client, userdata, msg):
     print("recieved message: \"{}\" from topic \"{}\"".format(msg.payload,msg.topic))
-    ser.write(msg.payload)
+    ser.write(msg.payload + "\n")
     ser.flush()
 
 def on_publish(client,userdata,mid):
@@ -77,7 +77,7 @@ try:
         for arg in split[1:]:
             line = line + " " + arg.strip("'")
         print("publishing \"{}\"".format(line))
-        client.publish(publish_topic, line  + "\n")
+        client.publish(publish_topic, line)
 
 
 # handle list index error (i.e. assume no data received)
