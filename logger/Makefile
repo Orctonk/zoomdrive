@@ -53,6 +53,7 @@ CFLAGS += $(addprefix -f,$(CTUNING))
 CFLAGS += $(addprefix -W,$(CWARN))
 CFLAGS += $(INC_FLAGS)
 CFLAGS += $(addprefix -D,$(DEFINES))
+CFLAGS += $(OPTIMIZE)
 
 all: $(TARGET_HEX)
 
