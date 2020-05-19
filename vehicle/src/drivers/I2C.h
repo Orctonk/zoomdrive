@@ -1,5 +1,5 @@
 /*
- * extender_interface.h
+ * I2C.h
  * 
  * Date: 2020-05-115
  * 
@@ -8,16 +8,19 @@
  * 
  */
 
-#ifndef EXTENDER_INTERFACE_H
-#define EEXTENDER_INTERFACE_H
+#ifndef I2C_H
+#define I2C_H
 
 #include <stdbool.h>
 
-#define SLAVE_ADRESS 0x07
+#define EXTENDER_SLAVE_ADRESS 0x07
+#define F_SENSOR_SLAVE_ADRESS 0xE0
+#define B_SENSOR_SLAVE_ADRESS 0xEA
+
 /*
  * Initialize 
  */
-void init();
+void I2C_init(void);
 
 /*
  * Turn on or off the green lamp.
@@ -34,9 +37,13 @@ void green_lamp(bool lamp_switch);
 void yellow_lamp(bool lamp_switch); 
 
 /*
- * Return true if the distance sensors are within 15cm of an object. 
+ * Return true if the front distance sensor is within 15cm of an object. 
  */
-bool within_15cm(); 
+uint16_t front_distance(void); 
 
+/*
+ * Return true if the back distance sensor is within 15cm of an object. 
+ */
+uint16_t back_distance(void);
 
 #endif

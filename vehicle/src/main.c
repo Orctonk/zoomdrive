@@ -17,7 +17,7 @@
 #include "drivers/timer.h"
 #include "drivers/summer.h"
 #include "drivers/engine.h"
-#include "drivers/extender_interface.h"
+#include "drivers/I2C.h"
 #include "message.h"
 
 #define LED_PORT PORTC
@@ -26,6 +26,7 @@
 
 //Variable declerations
 int32_t last_hb;         //Last recieved heartbeat.
+int32_t last_up;
 
 bool locked;             //Locked if in emergency stop mode.
 bool dm1;                // Deadmam's grip from controller 1
@@ -34,11 +35,12 @@ bool dm2;                // Deadmam's grip from controller 2
 /*
  * Initialze device by calling all initialization functions 
  */
-void init(){  
+void init(void){  
     SPI_init();
     LCD_init();
     summer_init(); 
     engine_init();
+    I2C_init();
     timer_init();
 
     LED_DDR|=(1<<LED_PIN);
@@ -83,12 +85,16 @@ void callback(Message msg){
         }
     }
     else if(msg.type == EMBUTTON){
+        //If the emergency button has been pressed, activate emergency mode.
         if(msg.args[0] == 1){
             //Lock
             locked = true; 
             engine_set_speed(0);   
             LCD_set_cursor(0x00);
             LCD_write_string("STOPPED");  
+            Message reply;
+            reply.type = EMSTATE; 
+            Message_Send(reply, 0);
         }
         else if(msg .args[0] == 0){
             //Unlock
@@ -122,26 +128,53 @@ void callback(Message msg){
 int main(void) {
     init();
 
+    LCD_set_cursor(0x10);
+    LCD_write_string("Speed:");
+
     Message_Init(4800);
     Message_Register(0xff,callback);
    
     while(1){
+        if(timer_get_time() -last_up > 1){
+            Message speed_update; 
+
+            speed_update.type = SPEED;
+            itoa(engine_get_speed(), speed_update.args[0], 10);
+            Message_Send(speed_update, 0);
+
+            Message distance_update; 
+
+            distance_update.type = DISTANCE;
+            itoa(front_distance(), distance_update.args[0], 10);
+            itoa(back_distance(), distance_update.args[1], 10);
+            Message_Send(distance_update, 0);
+
+            //LCD_set_cursor(0x16); // Display information 
+        }
+
         if (timer_get_time() - last_hb > 3){
             engine_set_speed(0);
         }
+
         if(locked){
             LED_PORT |= (1<<LED_PIN);
         }
         else {
             LED_PORT &= ~(1<<LED_PIN);
         }
-       if(engine_get_speed() == -1){
-           //If the vhiecle is backing, 
-           summer_start(); 
-           yellow_lamp(1); 
-       }
-       else {
-           summer_stop();
-           yellow_lamp(0); 
-       }
+
+        if(engine_get_speed() == -1){
+            //If the vehicle is backing, 
+            summer_start(); 
+            yellow_lamp(1); 
+        }
+        else if(engine_get_speed() > 0){
+            //If the vehicle is driving forward
+            green_lamp(1);
+        }
+        else {
+            summer_stop();
+            green_lamp(0);
+            yellow_lamp(0); 
+        }
 }

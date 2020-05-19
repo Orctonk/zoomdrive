@@ -8,8 +8,18 @@
  * 
  */
 
-#ifndef LCD_H_
-#define LCD_H_
+#include <avr/io.h>
 
+/*
+ * Turn on or off the right turn signal.
+ * 
+ * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
+ */
+void turn_signal_right(bool lamp_switch);
 
-#endif 
+/*
+ * Turn on or off the left turn signal.
+ * 
+ * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
+ */     
+void turn_signal_left(bool lamp_switch); 

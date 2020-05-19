@@ -10,8 +10,9 @@
 
 #include "engine.h"
 
-int duty_cicle = 200;   
+int duty_cicle = 200; 
 int speed = 0; 
+
 
 /*
  * Initialize motor
@@ -86,13 +87,13 @@ void engine_turn(int8_t degree){
         OCR0A = duty_cicle; 
         OCR0B = duty_cicle; 
     }
+}
 
-    /*
-    * Get the speed of the vheicle.  
-    * 
-    * Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
-    */
-    int engine_get_speed(){
-        return speed; 
-    }
+/*
+* Get the speed of the vheicle.  
+* 
+* Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
+*/
+int engine_get_speed(){
+    return speed; 
 }
