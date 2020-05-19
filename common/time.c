@@ -9,17 +9,13 @@
 
 // Raw timer ticks since system startup
 static volatile uint32_t ms = 0;
-static volatile uint32_t cbtime = 0;
-static volatile uint32_t lastcb = 0;
-static volatile TimerCallback callback = (void*)0;
+static uint32_t cbtime = 0;
+static uint32_t lastcb = 0;
+static TimerCallback callback = (void*)0;
 
 // Timer interrupt vector
 ISR(TIMER2_COMPA_vect){
     ms++;
-    if(callback != (void*)0 && ms-lastcb >= cbtime){
-        callback();
-        lastcb = ms;
-    }
 }
 
 // ------------- PUBLIC -------------
@@ -51,8 +47,20 @@ uint32_t Time_GetMillis(void){
     return ms ;
 }
 
+// Register a timer callback which is called with a period of
+// at least @ms milliseconds.
 void Time_RegisterTimer(uint32_t cbperiod, TimerCallback cb) {
     lastcb = ms;
     callback = cb;
     cbtime = cbperiod;
+}
+
+// Call timer callback if enough time has passed
+// Infrequent calls to this function results in errors to the period of the 
+// registered callback
+void Time_Update(void){
+    if(callback != (void*)0 && ms-lastcb >= cbtime){
+        callback();
+        lastcb = ms;
+    }
 }

@@ -27,6 +27,13 @@ time Time_Get(void);
 // Gets the number of milliseconds since system startup
 uint32_t Time_GetMillis(void);
 
+// Register a timer callback which is called with a period of
+// at least @ms milliseconds.
 void Time_RegisterTimer(uint32_t ms, TimerCallback);
+
+// Call timer callback if enough time has passed
+// Infrequent calls to this function results in errors to the period of the 
+// registered callback
+void Time_Update(void);
 
 #endif // __TIME_H__
