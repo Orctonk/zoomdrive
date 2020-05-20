@@ -19,11 +19,9 @@ typedef enum MessageType{
     HEARTBEAT       = (TOCAR)       |   6,
     CSTSTRING       = (TOCAR)       |   7,
     GEAR            = (TOCAR)       |   8,
-    EMSTATE         = (FROMCAR)     |   9,
-    SPEED           = (FROMCAR)     |   10,
-    DISTANCE        = (FROMCAR)     |   11,
-    PONG            = (FROMCAR)     |   12,
-    CARBUTTON       = (FROMCAR)     |   13
+    UPDATE          = (FROMCAR)     |   9,
+    PONG            = (FROMCAR)     |   10,
+    CARBUTTON       = (FROMCAR)     |   11
 } MessageType;
 
 #ifndef MESSAGE_ONLY_ENUM
