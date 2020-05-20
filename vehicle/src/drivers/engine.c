@@ -9,8 +9,9 @@
  */
 
 #include "engine.h"
+#include "RGB_LED_strip.h"
 
-int duty_cicle = 10; 
+int duty_cicle = 200; 
 int speed = 0; 
 int degree = 0;
 
@@ -19,20 +20,19 @@ int degree = 0;
  */
 void right_wheel(int right){
     if(right == 1){
-        PORTB |= (1<< RIGHT_IN2);
-        PORTB &= ~(1<< RIGHT_IN1);
-
-        TCCR0A |= (1<<COM0A0)|(1<<COM0A1);
-    }
-    else if(right == -1){
         PORTB |= (1<< RIGHT_IN1);
         PORTB &= ~(1<< RIGHT_IN2);
 
         TCCR0A |= (1<<COM0A0)|(1<<COM0A1);
     }
+    else if(right == -1){
+        PORTB |= (1<< RIGHT_IN2);
+        PORTB &= ~(1<< RIGHT_IN1);
+
+        TCCR0A |= (1<<COM0A0)|(1<<COM0A1);
+    }
     else if (right == 0){  
         TCCR0A &= ~((1<<COM0A0)|(1<<COM0A1));
-
         PORTD &= ~(1<<RIGHT_PWM_PIN);
     }
 }
@@ -50,12 +50,11 @@ void left_wheel(int left){
     else if(left == -1){
         PORTD |= (1<< LEFT_IN1);
         PORTB &= ~(1<< LEFT_IN2);
-        
+
         TCCR0A |= (1<<COM0B0)|(1<<COM0B1);
     }
     else if (left == 0){
         TCCR0A &= ~((1<<COM0B0)|(1<<COM0B1));
-        
         PORTD &= ~(1<<LEFT_PWM_PIN);
     }
 }    
@@ -100,7 +99,7 @@ void engine_turn(int8_t new_degree){
 }
 
 void recalc_engine(){
-    if(degree == -1){
+    if(degree == 1){
         if(speed == 0){
             right_wheel(1);
             left_wheel(-1);
@@ -110,7 +109,7 @@ void recalc_engine(){
             left_wheel(0);
         }
        
-    } else if (degree == 1){
+    } else if (degree == -1){
         if(speed == 0){
             right_wheel(-1);
             left_wheel(1);
@@ -120,7 +119,7 @@ void recalc_engine(){
             left_wheel(speed);
         }
        
-    } else{
+     else{
         right_wheel(speed);
         left_wheel(speed);
     }
@@ -133,5 +132,14 @@ void recalc_engine(){
 */
 int engine_get_speed(void){
     return speed; 
+}
+
+/*
+ * Get the heading of the vheicle.  
+ * 
+ * Return: 1, if moving right normal speed. -1 if moving left. 0 if standing still.
+ */
+int engine_get_heading(void){
+    return degree;
 }
 

@@ -9,6 +9,16 @@
  */
 
 #include <avr/io.h>
+#include <stdbool.h>
+
+#define STRIP_DDR DDRD
+#define STRIP_PORT PORTD 
+#define STRIP_PIN PIN4
+
+/*
+ * Initialize 
+ */
+void LED_strip_init(uint8_t);
 
 /*
  * Turn on or off the right turn signal.

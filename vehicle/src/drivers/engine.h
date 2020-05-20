@@ -52,4 +52,11 @@ void engine_turn(int8_t degree);
  */
 int engine_get_speed(void);
 
+/*
+ * Get the heading of the vheicle.  
+ * 
+ * Return: 1, if moving right normal speed. -1 if moving left. 0 if standing still.
+ */
+int engine_get_heading(void);
+
 #endif 
