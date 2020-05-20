@@ -29,7 +29,7 @@
 /*
  * Initialize motor
  */
-void engine_init();
+void engine_init(void);
 
 /*
  * Set speed of viecle.
@@ -50,6 +50,6 @@ void engine_turn(int8_t degree);
  * 
  * Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
  */
-int engine_get_speed();
+int engine_get_speed(void);
 
 #endif 

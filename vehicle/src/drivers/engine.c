@@ -10,53 +10,53 @@
 
 #include "engine.h"
 
-int duty_cicle = 200; 
+int duty_cicle = 10; 
 int speed = 0; 
 int degree = 0;
 
 /*
- *
+ * Set speed for right wheel
  */
 void right_wheel(int right){
     if(right == 1){
-        TCCR0B |= (1<< CS02);
-
-        PORTB |= (1<< RIGHT_IN1);
-        PORTB &= ~(1<< RIGHT_IN2);
-         
-    }
-    else if(right == -1){
-        TCCR0B |= (1<< CS02);
-
         PORTB |= (1<< RIGHT_IN2);
         PORTB &= ~(1<< RIGHT_IN1);
+
+        TCCR0A |= (1<<COM0A0)|(1<<COM0A1);
     }
-    else if (right == 0){
-        TCCR0B &= ~(1<< CS02);
-        
+    else if(right == -1){
+        PORTB |= (1<< RIGHT_IN1);
+        PORTB &= ~(1<< RIGHT_IN2);
+
+        TCCR0A |= (1<<COM0A0)|(1<<COM0A1);
+    }
+    else if (right == 0){  
+        TCCR0A &= ~((1<<COM0A0)|(1<<COM0A1));
+
+        PORTD &= ~(1<<RIGHT_PWM_PIN);
     }
 }
 
 /*
- *
+ * Set speed for left wheel
  */
 void left_wheel(int left){
     if(left == 1){
-        TCCR0B |= (1<< CS02);
-
-        PORTD |= (1<< LEFT_IN1);
-        PORTB &= ~(1<< LEFT_IN2);
-         
-    }
-    else if(left == -1){
-        TCCR0B |= (1<< CS02);
-
         PORTD &= ~ (1<< LEFT_IN1);
         PORTB |= (1<< LEFT_IN2);
+
+        TCCR0A |= (1<<COM0B0)|(1<<COM0B1);
+    }
+    else if(left == -1){
+        PORTD |= (1<< LEFT_IN1);
+        PORTB &= ~(1<< LEFT_IN2);
+        
+        TCCR0A |= (1<<COM0B0)|(1<<COM0B1);
     }
     else if (left == 0){
-        TCCR0B &= ~(1<< CS02);
+        TCCR0A &= ~((1<<COM0B0)|(1<<COM0B1));
         
+        PORTD &= ~(1<<LEFT_PWM_PIN);
     }
 }    
 
@@ -64,12 +64,14 @@ void left_wheel(int left){
 /*
  * Initialize motor
  */
-void engine_init(){
-    PWM_DDR |= (1<< RIGHT_PWM_PIN);
-	TCCR0B = (1<< WGM02);
+void engine_init(void){
+    PWM_DDR |= (1<< RIGHT_PWM_PIN)|(1<<LEFT_PWM_PIN);
+    PORTD &= ~((1<< RIGHT_PWM_PIN)|(1<<LEFT_PWM_PIN));
+
 	OCR0A = duty_cicle; 
     OCR0B = duty_cicle; 
-	TCCR0A = (1<<COM0A0)|(1<<WGM00)|(1<<COM0B0);
+    TCCR0B = (1<<CS02);
+	TCCR0A = (1<<WGM00);
 
     DDRB |= (1<< RIGHT_IN1);
     DDRB |= (1<< RIGHT_IN2);
@@ -78,38 +80,13 @@ void engine_init(){
 }
 
 /*
- * Set speed of viecle.
+ * Set speed of 
  * 
  * new_speed: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
  */
 void engine_set_speed(int8_t new_speed){
     speed = new_speed;
-
-    right_wheel(speed);
-    left_wheel(speed); 
-    // if(speed == 1){
-    //     TCCR0B |= (1<< CS02);
-
-    //     PORTB |= (1<< RIGHT_IN1);
-    //     PORTB &= ~(1<< RIGHT_IN2);
-
-    //     PORTD |= (1<< LEFT_IN1);
-    //     PORTB &= ~(1<< LEFT_IN2);
-         
-    // }
-    // else if(speed == -1){
-    //     TCCR0B |= (1<< CS02);
-
-    //     PORTB |= (1<< RIGHT_IN2);
-    //     PORTB &= ~(1<< RIGHT_IN1);
-
-    //     PORTD &= ~ (1<< LEFT_IN1);
-    //     PORTB |= (1<< LEFT_IN2);
-    // }
-    // else if (speed == 0){
-    //     TCCR0B &= ~(1<< CS02);
-        
-    // }
+    recalc_engine();
 }
 
 /*
@@ -118,33 +95,34 @@ void engine_set_speed(int8_t new_speed){
  * degree: 0 if forward, 1 if right, -1 if left.
  */
 void engine_turn(int8_t new_degree){
-    int degree = new_degree;
-    if(degree == 1){
-        // OCR0A = 0; 
-        // OCR0B = duty_cicle; 
-        // TCCR0B |= (1<< CS02);
+    degree = new_degree;
+    recalc_engine();
+}
 
-        // PORTD |= (1<< LEFT_IN1);
-        // PORTB &= ~(1<< LEFT_IN2);
-
-        right_wheel(0);
-        left_wheel(1);
-    }
-    else if(degree == -1){
-        // OCR0A = duty_cicle; 
-        // OCR0B = 0; 
-        // TCCR0B |= (1<< CS02);
-
-        // PORTB |= (1<< RIGHT_IN1);
-        // PORTB &= ~(1<< RIGHT_IN2);
-        left_wheel(1);
-        right_wheel(0);
-    }
-
-    else if(degree == 0){
-        // OCR0A = duty_cicle; 
-        // OCR0B = duty_cicle; 
-        engine_set_speed(speed);
+void recalc_engine(){
+    if(degree == -1){
+        if(speed == 0){
+            right_wheel(1);
+            left_wheel(-1);
+        }
+        else {
+            right_wheel(speed);
+            left_wheel(0);
+        }
+       
+    } else if (degree == 1){
+        if(speed == 0){
+            right_wheel(-1);
+            left_wheel(1);
+        }
+        else {
+            right_wheel(0);
+            left_wheel(speed);
+        }
+       
+    } else{
+        right_wheel(speed);
+        left_wheel(speed);
     }
 }
 
@@ -153,6 +131,7 @@ void engine_turn(int8_t new_degree){
 * 
 * Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
 */
-int engine_get_speed(){
+int engine_get_speed(void){
     return speed; 
 }
+
