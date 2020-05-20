@@ -13,7 +13,7 @@
 
 #include <stdbool.h>
 
-#define EXTENDER_SLAVE_ADRESS 0x07
+#define EXTENDER_SLAVE_ADRESS 0x70
 #define F_SENSOR_SLAVE_ADRESS 0xE0
 #define B_SENSOR_SLAVE_ADRESS 0xEA
 

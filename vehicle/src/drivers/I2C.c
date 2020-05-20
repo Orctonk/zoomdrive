@@ -31,6 +31,7 @@ void green_lamp(bool lamp_switch){
 		i2c_stop();
 		return 0;
 	}
+	//Read current and apply new command.
 	uint8_t data = i2c_readAck(); 
 	if(lamp_switch){
 		data |= (1<< PIN1);
@@ -59,6 +60,7 @@ void yellow_lamp(bool lamp_switch){
 		i2c_stop();
 		return 0;
 	}
+	//Read current and apply new command.
 	uint8_t data = i2c_readAck(); 
 	if(lamp_switch){
 		data |= (1<< PIN0);
@@ -81,13 +83,6 @@ void yellow_lamp(bool lamp_switch){
  *
  */ 	
 void button_pressed(void){
-if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
-		i2c_stop();
-		return 0;
-	}
-	uint8_t data = i2c_readAck(); 
-		// |= (1<< PIN5);				Är knappen hög? 
-
 
 
 }
