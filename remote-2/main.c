@@ -22,7 +22,7 @@ static volatile int cBtn = 0;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
 static volatile int eBtn = 0;
-static volatile char *infoStr;
+static volatile char *emStateString, *distString, *speedString;
 int reset = 0;
 int tous, huns, tens, ones, intDec, dist, tilt;
 int strInt, prev;
@@ -94,7 +94,7 @@ int readADC(int channel) {
 
 void menuRight(void) {
     _delay_ms(10);
-    if (!(++strInt == 5)) {
+    if (!(++strInt > 4)) {
         currStr = nxtStr;
         nxtStr = strings[strInt];
     } else {
@@ -107,7 +107,7 @@ void menuRight(void) {
 void menuLeft(void) {
 
     _delay_ms(10);
-    if (!(--strInt == -1)) {
+    if (!(--strInt < 0)) {
         nxtStr = currStr;
         currStr = strings[strInt];
     } else {
@@ -123,7 +123,6 @@ void timeCallback(void) {
         PORTC |= (1<<PINC4);
     }
     lastCallback = 1;
-    
 }
 
 void callback(Message msg) {
@@ -140,8 +139,10 @@ void callback(Message msg) {
             }
             break;
 
-        case INFO:
-            strcpy(infoStr, msg.args[0]);
+        case UPDATE:
+            strcpy(emStateString, msg.args[0]);
+            strcpy(speedString, msg.args[1]);
+            strcpy(distString, msg.args[2]);
             break;
 
         case HEARTBEAT:
@@ -156,14 +157,14 @@ void callback(Message msg) {
             }
             break;
 
-        case EMSTATE:
+        case EMBUTTON:
             if (!strcmp(msg.args[0], "1")) {
                 eBtn = 1;
                 PORTC |= (1<<PINC3);
             } else {
                 eBtn = 0;
                 PORTC &= ~(1<<PINC3);
-            } 
+            }
             break;
 
         default:
@@ -222,7 +223,12 @@ void writeToScreen(int dead, int gear) {
 
     moveCursor(0b10100000);
     
-    writeString(infoStr);
+    writeString("EB:");
+    writeString(emStateString);
+    writeString(" V:");
+    writeString(speedString);
+    writeString(" D:");
+    writeString(distString);
 
 }
 
@@ -269,6 +275,8 @@ int cheatCodes(int cState) {
         clearDisplay();
         writeString("Enter Code:");
         writeData(cState+48);
+        moveCursor(0b10010000);
+        writeString("EXIT=6&7");
 
         if (!cState && !(PIND & (1<<7))) {
             cState++;
@@ -277,7 +285,7 @@ int cheatCodes(int cState) {
         } else if ((cState == 2) && (!(PIND & (1<<3)))){
             blink();
             break;
-        } else if (!(PINC & (1<<2))) {
+        } else if (!(PIND & (1<<7)) && !(PIND & (1<<6))) {
             return 0;
         }
         _delay_ms(50);
@@ -286,18 +294,13 @@ int cheatCodes(int cState) {
     return 0;
 }
 
-/*
+    /*
    The main loop that controlls the program flow. 
    */
 int main(void) {
 
     strInt = prev = -1;
 
-    /*
-     *  TEXT IDEAS:
-     *
-     *
-     * */
     strings[0] = "st1";
     strings[1] = "st2";
     strings[2] = "st2";
@@ -306,7 +309,9 @@ int main(void) {
 
     selStr = currStr = strings[0];
     nxtStr = strings[1];
-    infoStr = "0";
+    emStateString = "N";
+    speedString = "A";
+    distString = "N";
 
     int cState = 0;
     int dead = 0;
@@ -319,7 +324,9 @@ int main(void) {
 
     Message msg;
 
+    sei();
     inits();
+
     // Loop as long as there is power in the MCU.
     while(1) {
 
