@@ -39,28 +39,28 @@ void mqttCallback(Message msg){
 		doLog(msg.type,"DEADMANSET %s %s", msg.args[0],msg.args[1]);
 		break;
 	case HONK:
-		doLog(msg.type,"HONKED!");
+		doLog(msg.type,"HONKED! %s", msg.args[0]);
 		break;
 	case PING:
 		doLog(msg.type,"PING");
 		break;
-	case EMSTATE:
-		doLog(msg.type,"EMSTATEGET %s",msg.args[0]);
+	case HEARTBEAT:
+		doLog(msg.type,"HEARTBEAT %s", msg.args[0]);
 		break;
-	case SPEED:
-		doLog(msg.type,"ENGINEPOWERGET %s", msg.args[0]);
+	case CSTSTRING:
+		doLog(msg.type,"CSTSTRING %s", msg.args[0]);
 		break;
-	case DISTANCE:
-		doLog(msg.type,"CARDISTANCEGET %s", msg.args[0]);
+	case GEAR:
+		doLog(msg.type,"GEARSET %s", msg.args[0]);
+		break;
+	case UPDATE:
+		doLog(msg.type,"CARSTATE %s %s %s",msg.args[0], msg.args[1], msg.args[2]);
 		break;
 	case PONG:
 		doLog(msg.type,"PONG");
 		break;
 	case CARBUTTON:
 		doLog(msg.type,"CARBTNPRESS");
-		break;
-	case HEARTBEAT:
-		doLog(msg.type,"HEARTBEAT %s", msg.args[0]);
 		break;
 	default:
 		break;

@@ -20,9 +20,7 @@ static volatile uint16_t writePos = 0;      // Current receive buffer write pos
 // UART receive byte interrupt
 ISR(USART_RX_vect){
     // Store received value into buffer
-    receive_buffer[writePos] = UDR0;
-    // Update write pos
-    INCREMENT_LOOP(writePos);
+    receive_buffer[INCREMENT_LOOP(writePos)] = UDR0;
 }
 
 // Sends a single byte over UART
@@ -75,7 +73,7 @@ bool readmsg(Message *msg){
 
     // Convert topic to int
     msg->type = atoi(buf);
-    
+
     // Read args until message end
     for(int i = 0;i < MAXARGS && !done; i++){
         for(int j = 0; j<ARGSIZE - 1; j++){
@@ -123,7 +121,7 @@ void Message_Init(uint16_t BAUD){
     UCSR0B |= (1<<RXCIE0);
 }
 
-// Sends message stored in @msg, assumes that @msg contains @argc arguments 
+// Sends message stored in @msg, assumes that @msg contains @argc arguments
 void Message_Send(Message msg, uint8_t argc){
     char buf[4];
     itoa(msg.type,buf,10);
@@ -143,7 +141,7 @@ void Message_Send(Message msg, uint8_t argc){
         }
     }
     UART_PutChar('\n');
-}  
+}
 
 // Polls the receive buffer for new incoming messages and calls callbacks
 // as appropriate
@@ -154,7 +152,7 @@ void Message_Update(void){
             callback(msg);
 }
 
-// Overrides the current message callback with @cb or removes 
+// Overrides the current message callback with @cb or removes
 // callbacks if @cb is NULL
 // Only triggers callbacks with messages whose topic-bit is set in @topic
 void Message_Register(MessageTopic topic, MessageCallback cb){
