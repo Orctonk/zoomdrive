@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <avr/interrupt.h>
 
 #include "drivers/SPI.h"
 #include "drivers/LCD.h"
@@ -32,30 +33,11 @@ bool locked;             //Locked if in emergency stop mode.
 bool dm1;                // Deadmam's grip from controller 1
 bool dm2;                // Deadmam's grip from controller 2
 
-/*
- * Initialze device by calling all initialization functions 
- */
-void init(void){  
-    SPI_init();
-    LCD_init();
-    summer_init(); 
-    engine_init();
-    I2C_init();
-    Time_Init();
-
-    LED_DDR|=(1<<LED_PIN);
-	LED_PORT&=~(1<<LED_PIN);
-
-    locked = false; 
-    dm1 = false;
-    dm2 = false; 
-}
 
 /*
  * Recieves a message and do perform right action.
  */ 
 void callback(Message msg){
-   
     if(msg.type == PING){  
         Message reply;
         reply.type = PONG; 
@@ -68,33 +50,30 @@ void callback(Message msg){
         Message_Send(reply, 0); 
     }
     else if(msg.type == DEADMAN){
-      if(strcmp(msg.args[0],"1" )== 0){
+      if(!strcmp(msg.args[0],"1")){
           dm1 = atoi(msg.args[1]);
       }
-      else if(strcmp(msg.args[0],"2" )== 0){
+      else if(!strcmp(msg.args[0],"2")){
           dm2 = atoi(msg.args[1]);
       }
-      if(dm1 && dm2){
+
+      if ((dm1 && dm2)||(!dm2 && !dm1)){
           //If both controllers deadman's grip is activated the vheicle should stop.
-          engine_set_speed(0);  
+          engine_set_speed(0);
       }
     }
     else if(msg.type == HONK){
-        if(!locked) {
+        if(!locked && !strcmp(msg.args[0],"2")) {
             summer_beep();
         }
     }
     else if(msg.type == EMBUTTON){
         //If the emergency button has been pressed, activate emergency mode.
-        if(strcmp(msg.args[0],"1" )== 0){
+        if(!strcmp(msg.args[0],"1" )){
             //Lock
             locked = true; 
-            engine_set_speed(0);   
             LCD_set_cursor(0x00);
             LCD_write_string("STOPPED");  
-            Message reply;
-            reply.type = EMSTATE; 
-            Message_Send(reply, 0);
         }
         else if(strcmp(msg.args[0],"0" )== 0){
             //Unlock
@@ -123,44 +102,64 @@ void callback(Message msg){
 }
 
 /*
+ * Initialze device by calling all initialization functions 
+ */
+void init(void){ 
+    SPI_init();
+    LCD_init();
+    summer_init(); 
+    engine_init();
+    I2C_init();
+    Time_Init(); 
+
+    LED_DDR|=(1<<LED_PIN);
+	LED_PORT&=~(1<<LED_PIN);
+
+    locked = false; 
+    dm1 = false;
+    dm2 = false; 
+    Message_Init(9600);
+    Message_Register(0xff,callback);
+}
+
+/*
  * Main function 
  */
 int main(void) {
     init();
+    sei();
 
     LCD_set_cursor(0x10);
     LCD_write_string("Speed:");
 
-    Message_Init(4800);
-    Message_Register(0xff,callback);
-   
+    uint32_t curtime;
+    
     while(1){
-       if(Time_GetMillis() -last_up > 2000){
-            Message speed_update; 
+        Message_Update();
+        curtime = Time_GetMillis();
+        if(curtime -last_up > 2000){
+            Message update_msg; 
+            
+            update_msg.type = UPDATE;
+            itoa(locked ? 1 : 0, update_msg.args[0], 10);               
+            itoa(engine_get_speed(), update_msg.args[1], 10);
 
-            speed_update.type = SPEED;
-            itoa(engine_get_speed(), speed_update.args[0], 10);
-            Message_Send(speed_update, 1);
-           
-            Message distance_update; 
+            itoa(engine_get_speed(), update_msg.args[2], 10);
 
-            distance_update.type = DISTANCE;
-            //itoa(front_distance(), distance_update.args[0], 10);
-            //itoa(back_distance(), distance_update.args[1], 10);
-            Message_Send(distance_update, 0);
-
-            last_up = Time_GetMillis();
-
+            Message_Send(update_msg, 3);
             LCD_set_cursor(0x16); // Display information 
+
+            last_up = curtime;
         }
 
-        if (Time_GetMillis() - last_hb > 3000){
+        if (curtime - last_hb > 3000){
             locked = true; 
-            summer_beep();
+            //summer_beep();
         }
 
         if(locked){
             LED_PORT |= (1<<LED_PIN);
+            engine_set_speed(0);
         }
         else {
             LED_PORT &= ~(1<<LED_PIN);
@@ -177,7 +176,7 @@ int main(void) {
         // }
         else {
             summer_stop();
-            // green_lamp(0);
+            green_lamp(1);
             // yellow_lamp(0); 
         }
     }
