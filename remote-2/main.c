@@ -56,61 +56,6 @@ void joyStickInit(void) {
 }
 
 /*
-   A function that takes a number, splits it and converts those splits to ascii.
-
-return:
-void
-
-input;
-@bcd - the number to split.
-
-*/
-void bcd2Asc(double bcd) {
-
-    tous = huns = tens = ones = intDec = 0;
-
-    int intPart = (int)bcd;
-
-    double dec = bcd - intPart;
-
-    // Finds the first decimal of the number.
-    intDec = round(dec*10);
-
-
-    // Counts the 100s, 10s, and 1s in the number.
-    while (intPart >= 1000) {	
-        tous++;
-        intPart -= 100;
-    }
-
-    while (intPart >= 100) {	
-        huns++;
-        intPart -= 100;
-    }
-
-    while (intPart >= 10) {	
-        tens++;
-        intPart -= 10;
-    }
-
-    while (intPart >= 1) {
-        ones++;
-        intPart--;
-    }
-
-    if (tous) {
-        huns = 0;
-    }
-
-    // Convert numbers to ascii.
-    tous += 48;
-    huns += 48;
-    tens += 48;
-    ones += 48;
-    intDec += 48;	
-}
-
-/*
    A function that initializes the ADC to be used.
 
 return:
@@ -206,7 +151,7 @@ void callback(Message msg) {
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
                 msg.type = HEARTBEAT;
-                strcpy(msg.args[0], "1");
+                strcpy(msg.args[0], "1\0");
                 Message_Send(msg, 1);
             }
             break;
@@ -232,9 +177,9 @@ void vertDrive(int dir) {
     Message msg;
     msg.type = ENGINE_POWER;
     if (dir == 1) {
-        strcpy(msg.args[0], "-1");
-    } else if (dir == -1) {
         strcpy(msg.args[0], "1");
+    } else if (dir == -1) {
+        strcpy(msg.args[0], "-1");
     } else {
         strcpy(msg.args[0], "0");
     }
@@ -257,9 +202,6 @@ void horDrive(int dir) {
 void writeToScreen(int dead, int gear) {
     writeString(currStr);
 
-    writeData(' ');
-
-    writeString(nxtStr);
     writeString("  G:");
     writeData(gear+48);
 
@@ -322,6 +264,28 @@ int checkDead(int dead) {
     return dead;
 }
 
+int cheatCodes(int cState) {
+    while (1) {
+        clearDisplay();
+        writeString("Enter Code:");
+        writeData(cState+48);
+
+        if (!cState && !(PIND & (1<<7))) {
+            cState++;
+        } else if ((cState == 1) && (!(PIND & (1<<6)))){
+            cState++;
+        } else if ((cState == 2) && (!(PIND & (1<<3)))){
+            blink();
+            break;
+        } else if (!(PINC & (1<<2))) {
+            return 0;
+        }
+        _delay_ms(50);
+
+    }
+    return 0;
+}
+
 /*
    The main loop that controlls the program flow. 
    */
@@ -336,15 +300,15 @@ int main(void) {
      * */
     strings[0] = "st1";
     strings[1] = "st2";
-    strings[2] = "st3";
-    strings[3] = "st4";
-    strings[4] = "st5";
+    strings[2] = "st2";
+    strings[3] = "st3";
+    strings[4] = "CC";
 
     selStr = currStr = strings[0];
     nxtStr = strings[1];
     infoStr = "0";
 
-
+    int cState = 0;
     int dead = 0;
     int vertAdc = 0;
     int horAdc = 0;
@@ -356,15 +320,16 @@ int main(void) {
     Message msg;
 
     inits();
-
-
     // Loop as long as there is power in the MCU.
     while(1) {
 
+        Message_Update();
+        Time_Update();
+
         clearDisplay();
 
-        vertAdc = readADC(1);
-        horAdc = readADC(0);
+        vertAdc = readADC(0);
+        horAdc = readADC(1);
 
         if (vertAdc >= 1000) {
             vert = 1;
@@ -384,32 +349,37 @@ int main(void) {
 
         if ((dead = checkDead(dead))) {
 
-
             if (!(PIND & (1<<6))) {
                 msg.type = HONK;
                 strcpy(msg.args[0], "2");
                 Message_Send(msg, 1);
             } 
 
-            if ((vert == 1) && (lV != vert)) {
-                lV = vert;
-                vertDrive(vert);
-            } else if ((vert == -1) && (lV != vert)) {
-                lV = vert;
-                vertDrive(vert);
-            } else if ((vert == 0) && (lV != vert)) {
-                lV = vert;
-                vertDrive(vert);
-            } else if ((hor == 1) && (lH != hor)) {
-                lH = hor;
-                horDrive(hor);
-            } else if ((hor == -1) && (lH != hor)) {
-                lH = hor;
-                horDrive(hor);
-            } else if ((hor == 0) && (lH != hor)) {
-                lH = hor;
-                horDrive(hor);
+            if (lV != vert) {
+                if ((vert == 1)) {
+                    lV = vert;
+                    vertDrive(vert);
+                } else if ((vert == -1)) {
+                    lV = vert;
+                    vertDrive(vert);
+                } else if ((vert == 0)) {
+                    lV = vert;
+                    vertDrive(vert);
+                }
+            } else if (lH != hor) {
+
+                if ((hor == 1)) {
+                    lH = hor;
+                    horDrive(hor);
+                } else if ((hor == -1)) {
+                    lH = hor;
+                    horDrive(hor);
+                } else if ((hor == 0)) {
+                    lH = hor;
+                    horDrive(hor);
+                }
             }
+
         } else {
 
             if (!(PIND & (1<<6))) {
@@ -418,15 +388,18 @@ int main(void) {
                 Message_Send(msg, 1);
             } 
 
-            if ((vertAdc <= 200)) {
+            if ((horAdc <= 200)) {
+
                 menuRight();
-                if (prev == 1) {
+                if (prev) {
                     menuRight();
                 }
                 prev = 0;
-            } else if ((vertAdc >= 800)) {
+
+            } else if ((horAdc >= 1000)) {
+
                 menuLeft();
-                if (prev == 0) {
+                if (!prev) {
                     menuLeft();
                 }
                 prev = 1;
@@ -446,13 +419,18 @@ int main(void) {
                         strcpy(msg.args[0], "1");
                 }
                 Message_Send(msg, 1);
+                _delay_ms(30);
             }
 
-            if (!(PINC)) {
-                selStr = currStr;
-                msg.type = CSTSTRING;
-                strcpy(msg.args[0], selStr);
-                Message_Send(msg, 1);
+            if (!(PINC & (1<<2))) {
+                if (!strcmp(currStr, "CC")) {
+                    cState = cheatCodes(cState);
+                } else {
+                    selStr = currStr;
+                    msg.type = CSTSTRING;
+                    strcpy(msg.args[0], selStr);
+                    Message_Send(msg, 1);
+                }
             } 
         }
 
