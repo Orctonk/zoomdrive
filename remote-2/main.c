@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include "define.h"
+#include <stdlib.h>
 #include "summer.h"
 #include "../common/message.h"
 #include "../common/time.h"
@@ -21,8 +22,9 @@
 static volatile int cBtn = 0;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
-static volatile int eBtn = 0;
 static volatile char *emStateString, *distString, *speedString;
+int huns, tens, ones, intDec, adc_value;
+double dec;
 int reset = 0;
 int tous, huns, tens, ones, intDec, dist, tilt;
 int strInt, prev;
@@ -38,6 +40,38 @@ void blink(void) {
     _delay_ms(10);
 }
 
+void bcd2Temp(double bcd) {
+
+    huns = tens = ones = intDec = 0;
+
+    dec = bcd - ((long)bcd);
+
+    intDec = round(dec*10);
+
+    while (bcd >= 100) {
+        huns++;
+        bcd -= 100;
+    }
+
+    while (bcd >= 10) {
+        tens++;
+        bcd -= 10;
+    }
+
+    while (bcd >= 1) {
+        ones++;
+        bcd--;
+    }
+
+    dec = bcd * 10;
+
+
+
+    huns += 48;
+    tens += 48;
+    ones += 48;
+    intDec += 48;
+}
 void ledInit(void) {
     DDRC |= (1<<PINC5) | (1<<PINC4) | (1<<PINC3);
     PORTC &= ~(1<<PINC5) | (1<<PINC4) | (1<<PINC3);
@@ -119,6 +153,7 @@ void menuLeft(void) {
 }
 
 void timeCallback(void) {
+
     if (lastCallback) {
         PORTC |= (1<<PINC4);
     }
@@ -132,14 +167,19 @@ void callback(Message msg) {
         case CARBUTTON:
             if (!strcmp(msg.args[0], "1")) {
                 cBtn = 1;
-                summer_start();
-            } else {
+            summer_start();
+        } else {
                 cBtn = 0;
                 summer_stop();
             }
             break;
 
         case UPDATE:
+            if (!strcmp(msg.args[0], "1")) {
+                PORTC |= (1<<PINC3);
+            } else {
+                PORTC &= ~(1<<PINC3);
+            }
             strcpy(emStateString, msg.args[0]);
             strcpy(speedString, msg.args[1]);
             strcpy(distString, msg.args[2]);
@@ -157,16 +197,6 @@ void callback(Message msg) {
             }
             break;
 
-        case EMBUTTON:
-            if (!strcmp(msg.args[0], "1")) {
-                eBtn = 1;
-                PORTC |= (1<<PINC3);
-            } else {
-                eBtn = 0;
-                PORTC &= ~(1<<PINC3);
-            }
-            break;
-
         default:
             break;
     }
@@ -175,6 +205,7 @@ void callback(Message msg) {
 
 
 void vertDrive(int dir) {
+
     Message msg;
     msg.type = ENGINE_POWER;
     if (dir == 1) {
@@ -188,6 +219,7 @@ void vertDrive(int dir) {
 }
 
 void horDrive(int dir) {
+
     Message msg;
     msg.type = HEADING;
     if (dir == 1) {
@@ -201,6 +233,7 @@ void horDrive(int dir) {
 }
 
 void writeToScreen(int dead, int gear) {
+
     writeString(currStr);
 
     writeString("  G:");
@@ -218,7 +251,6 @@ void writeToScreen(int dead, int gear) {
     } else {
         writeData('N');
     }
-    writeData(eBtn + 48);
     writeData(cBtn + 48);
 
     moveCursor(0b10100000);
@@ -294,9 +326,9 @@ int cheatCodes(int cState) {
     return 0;
 }
 
-    /*
+/*
    The main loop that controlls the program flow. 
-   */
+*/
 int main(void) {
 
     strInt = prev = -1;
@@ -309,9 +341,9 @@ int main(void) {
 
     selStr = currStr = strings[0];
     nxtStr = strings[1];
-    emStateString = "N";
-    speedString = "A";
-    distString = "N";
+    emStateString = "E";
+    speedString = "S";
+    distString = "D";
 
     int cState = 0;
     int dead = 0;
@@ -363,28 +395,11 @@ int main(void) {
             } 
 
             if (lV != vert) {
-                if ((vert == 1)) {
-                    lV = vert;
-                    vertDrive(vert);
-                } else if ((vert == -1)) {
-                    lV = vert;
-                    vertDrive(vert);
-                } else if ((vert == 0)) {
-                    lV = vert;
-                    vertDrive(vert);
-                }
+                lV = vert;
+                vertDrive(vert);
             } else if (lH != hor) {
-
-                if ((hor == 1)) {
-                    lH = hor;
-                    horDrive(hor);
-                } else if ((hor == -1)) {
-                    lH = hor;
-                    horDrive(hor);
-                } else if ((hor == 0)) {
-                    lH = hor;
-                    horDrive(hor);
-                }
+                lH = hor;
+                horDrive(hor);
             }
 
         } else {
@@ -445,6 +460,5 @@ int main(void) {
 
         _delay_ms(50);
     }
-
     return 0;
 }
