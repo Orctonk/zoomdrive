@@ -11,7 +11,7 @@
 /*
  *Initializes the device.
  */
-void summer_init(){
+void summer_init(void){
 	SUMMER_DDR |= (1<< SUMMER_PIN);
 	TCCR1B = (1<<WGM12);
 	OCR1A = 48; 
@@ -24,21 +24,21 @@ void summer_init(){
 /*
  *Will indicate to the user that the the reading is happening.
  */
-void summer_start(){
+void summer_start(void){
 	TCCR1B |= (1<< CS12); 
 }
 
 /*
  *Will indicate to the user when a reading is not happening.
  */
-void summer_stop(){
+void summer_stop(void){
 	TCCR1B &= ~(1<< CS12); 
 }
 
 /*
  * The buzzer beeps two times.
  */
-void summer_beep(){
+void summer_beep(void){
 	summer_stop();
 	_delay_ms(500);
 	summer_start();

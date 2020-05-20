@@ -9,7 +9,7 @@
 /* 
  * Set SPI data direction and enable SPI.
  */ 
-void SPI_init(){
+void SPI_init(void){
 	DDRB |= (1<< DDB3)|(1<<DDB5)|(1<<DDB2);
 	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
 }

@@ -24,7 +24,7 @@
 /*
  *Initializes the display.
  */
-void LCD_init();
+void LCD_init(void);
 
 /*
  *Takes a given string and write it to the display at the current selected position.
@@ -43,7 +43,7 @@ void LCD_set_cursor(uint8_t cursor_adress);
 /*
  *Clears the whole display.
  */
-void LCD_clear_display();
+void LCD_clear_display(void);
 
 // /*
 //  * static put char function to link printf to LCD.

@@ -33,7 +33,7 @@ void LCD_transmit(uint8_t temp){
 /*
  *Initializes the display.
  */
-void LCD_init(){
+void LCD_init(void){
     DDRC |= (1<< LCD_REGISTER_SELECT_PIN);
 	LCD_DDR |= (1<< LCD_CHIP_SELECT_PIN);
 	_delay_ms(45);
@@ -96,7 +96,7 @@ void LCD_set_cursor(uint8_t cursor_adress) {
 /*
  *Clears the whole display.
  */
-void LCD_clear_display(){
+void LCD_clear_display(void){
 	LCD_transmit(0x01);
 	_delay_ms(2);
 }

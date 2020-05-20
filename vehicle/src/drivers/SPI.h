@@ -13,7 +13,7 @@
 /* 
  * Set SPI data direction and enable SPI.
  */ 
-void SPI_init();
+void SPI_init(void);
 
 /*
  *Sends data thought SPI to the currently selected slave. 

@@ -20,21 +20,21 @@
 /*
  *Initializes the device.
  */
-void summer_init();
+void summer_init(void);
 
 /*
  * Start
  */
-void summer_start();
+void summer_start(void);
 
 /*
  * Stop
  */
-void summer_stop();
+void summer_stop(void);
 
 /*
  * The buzzer beeps two times.
  */
-void summer_beep(); 
+void summer_beep(void); 
 
 #endif /* SUMMER_H_ */
