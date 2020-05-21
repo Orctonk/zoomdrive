@@ -23,10 +23,7 @@ static volatile int cBtn = 0;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
 static volatile char *emStateString, *distString, *speedString;
-int huns, tens, ones, intDec, adc_value;
-double dec;
 int reset = 0;
-int tous, huns, tens, ones, intDec, dist, tilt;
 int strInt, prev;
 char *currStr;
 char *selStr;
@@ -40,38 +37,6 @@ void blink(void) {
     _delay_ms(10);
 }
 
-void bcd2Temp(double bcd) {
-
-    huns = tens = ones = intDec = 0;
-
-    dec = bcd - ((long)bcd);
-
-    intDec = round(dec*10);
-
-    while (bcd >= 100) {
-        huns++;
-        bcd -= 100;
-    }
-
-    while (bcd >= 10) {
-        tens++;
-        bcd -= 10;
-    }
-
-    while (bcd >= 1) {
-        ones++;
-        bcd--;
-    }
-
-    dec = bcd * 10;
-
-
-
-    huns += 48;
-    tens += 48;
-    ones += 48;
-    intDec += 48;
-}
 void ledInit(void) {
     DDRC |= (1<<PINC5) | (1<<PINC4) | (1<<PINC3);
     PORTC &= ~(1<<PINC5) | (1<<PINC4) | (1<<PINC3);
@@ -160,6 +125,17 @@ void timeCallback(void) {
     lastCallback = 1;
 }
 
+void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
+    int argc =  1;
+    msg.type = topic;
+    strcpy(msg.args[0], payLoad1);
+    if (payLoad2 != NULL) {
+        strcpy(msg.args[1], payLoad2);
+        argc++;
+    }
+    Message_Send(msg, argc);
+}
+
 void callback(Message msg) {
 
     cli();
@@ -191,9 +167,7 @@ void callback(Message msg) {
 
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
-                msg.type = HEARTBEAT;
-                strcpy(msg.args[0], "1\0");
-                Message_Send(msg, 1);
+                sendMessage(HEARTBEAT, "1", NULL, msg);
             }
             break;
 
@@ -207,29 +181,26 @@ void callback(Message msg) {
 void vertDrive(int dir) {
 
     Message msg;
-    msg.type = ENGINE_POWER;
     if (dir == 1) {
         strcpy(msg.args[0], "1");
+        sendMessage(ENGINE_POWER, "1", NULL, msg);
     } else if (dir == -1) {
-        strcpy(msg.args[0], "-1");
+        sendMessage(ENGINE_POWER, "-1", NULL, msg);
     } else {
-        strcpy(msg.args[0], "0");
+        sendMessage(ENGINE_POWER, "0", NULL, msg);
     }
-    Message_Send(msg, 1);
 }
 
 void horDrive(int dir) {
 
     Message msg;
-    msg.type = HEADING;
     if (dir == 1) {
-        strcpy(msg.args[0], "-1");
+        sendMessage(HEADING, "-1", NULL, msg);
     } else if (dir == -1) {
-        strcpy(msg.args[0], "1");
+        sendMessage(HEADING, "1", NULL, msg);
     } else {
-        strcpy(msg.args[0], "0");
+        sendMessage(HEADING, "0", NULL, msg);
     }
-    Message_Send(msg, 1);
 }
 
 void writeToScreen(int dead, int gear) {
@@ -284,17 +255,13 @@ int checkDead(int dead) {
     Message msg;
 
     if (!(PIND & (1<<7)) && (dead != 1)) {
-        msg.type = DEADMAN;
-        strcpy(msg.args[0], "1");
-        strcpy(msg.args[1], "1");
-        Message_Send(msg, 2);
+
+        sendMessage(DEADMAN, "1", "1", msg);
         _delay_ms(10);
         return 1;
     } else if ((PIND & (1<<7)) && (dead != 0)) {
-        msg.type = DEADMAN;
-        strcpy(msg.args[0], "1");
-        strcpy(msg.args[1], "0");
-        Message_Send(msg, 2);
+
+        sendMessage(DEADMAN, "1", "0", msg);
         _delay_ms(10);
         return 0;
     }
@@ -326,6 +293,7 @@ int cheatCodes(int cState) {
     return 0;
 }
 
+
 /*
    The main loop that controlls the program flow. 
 */
@@ -356,8 +324,8 @@ int main(void) {
 
     Message msg;
 
-    sei();
     inits();
+    sei();
 
     // Loop as long as there is power in the MCU.
     while(1) {
@@ -389,12 +357,8 @@ int main(void) {
         if ((dead = checkDead(dead))) {
 
             if (!(PIND & (1<<6))) {
-                msg.type = HONK;
-                strcpy(msg.args[0], "2");
-                Message_Send(msg, 1);
-            } 
-
-            if (lV != vert) {
+                sendMessage(HONK, "2", NULL, msg);
+            } else if (lV != vert) {
                 lV = vert;
                 vertDrive(vert);
             } else if (lH != hor) {
@@ -403,12 +367,6 @@ int main(void) {
             }
 
         } else {
-
-            if (!(PIND & (1<<6))) {
-                msg.type = HONK;
-                strcpy(msg.args[0], "0");
-                Message_Send(msg, 1);
-            } 
 
             if ((horAdc <= 200)) {
 
@@ -426,32 +384,33 @@ int main(void) {
                 }
                 prev = 1;
             }
-            
-            if (!(PIND & (1<<3))) {
-                msg.type = GEAR;
+
+            if (!(PIND & (1<<6))) {
+
+                sendMessage(HONK, "0", NULL, msg);
+
+            } else if (!(PIND & (1<<3))) {
+
                 switch (++gear) {
                     case 2:
-                        strcpy(msg.args[0], "2");
+                        sendMessage(GEAR, "2", NULL, msg);
                         break;
                     case 3:
-                        strcpy(msg.args[0], "3");
+                        sendMessage(GEAR, "3", NULL, msg);
                         break;
                     default:
                         gear = 1;
-                        strcpy(msg.args[0], "1");
+                        sendMessage(GEAR, "1", NULL, msg);
                 }
-                Message_Send(msg, 1);
                 _delay_ms(30);
-            }
 
-            if (!(PINC & (1<<2))) {
+            } else if (!(PINC & (1<<2))) {
+
                 if (!strcmp(currStr, "CC")) {
                     cState = cheatCodes(cState);
                 } else {
                     selStr = currStr;
-                    msg.type = CSTSTRING;
-                    strcpy(msg.args[0], selStr);
-                    Message_Send(msg, 1);
+                    sendMessage(CSTSTRING, selStr, NULL, msg);
                 }
             } 
         }
