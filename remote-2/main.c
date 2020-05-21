@@ -129,9 +129,12 @@ void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
     int argc =  1;
     msg.type = topic;
     strcpy(msg.args[0], payLoad1);
-    if (payLoad2 != NULL) {
+    if (payLoad2) {
         strcpy(msg.args[1], payLoad2);
+        msg.args[1][strlen(payLoad2)] = '\0';
         argc++;
+    } else {
+        msg.args[0][strlen(payLoad1)] = '\0';
     }
     Message_Send(msg, argc);
 }
@@ -140,11 +143,35 @@ void callback(Message msg) {
 
     cli();
     switch(msg.type) {
+
+        case HEARTBEAT:
+            lastCallback = 0;
+            PORTC &= ~(1<<PINC4);
+
+            if (!strcmp(msg.args[0], "0")) {
+                Message msg;
+                blink();
+                sendMessage(HEARTBEAT, "1", NULL, msg);
+                _delay_ms(50);
+            }
+            break;
+
+        case HONK:
+            if(!strcmp(msg.args[0], "1")) {
+                if (!strcmp(msg.args[1], "1")) {
+                    summer_start();
+                } else {
+                    summer_stop();
+                }
+            }
+
+            break;
+
         case CARBUTTON:
             if (!strcmp(msg.args[0], "1")) {
                 cBtn = 1;
-            summer_start();
-        } else {
+                summer_start();
+            } else {
                 cBtn = 0;
                 summer_stop();
             }
@@ -161,15 +188,6 @@ void callback(Message msg) {
             strcpy(distString, msg.args[2]);
             break;
 
-        case HEARTBEAT:
-            lastCallback = 0;
-            PORTC &= ~(1<<PINC4);
-
-            if (!strcmp(msg.args[0], "0")) {
-                Message msg;
-                sendMessage(HEARTBEAT, "1", NULL, msg);
-            }
-            break;
 
         default:
             break;
@@ -225,7 +243,7 @@ void writeToScreen(int dead, int gear) {
     writeData(cBtn + 48);
 
     moveCursor(0b10100000);
-    
+
     writeString("EB:");
     writeString(emStateString);
     writeString(" V:");
@@ -257,12 +275,12 @@ int checkDead(int dead) {
     if (!(PIND & (1<<7)) && (dead != 1)) {
 
         sendMessage(DEADMAN, "1", "1", msg);
-        _delay_ms(10);
+        _delay_ms(50);
         return 1;
     } else if ((PIND & (1<<7)) && (dead != 0)) {
 
         sendMessage(DEADMAN, "1", "0", msg);
-        _delay_ms(10);
+        _delay_ms(50);
         return 0;
     }
 
@@ -293,10 +311,9 @@ int cheatCodes(int cState) {
     return 0;
 }
 
-
 /*
    The main loop that controlls the program flow. 
-*/
+   */
 int main(void) {
 
     strInt = prev = -1;
@@ -313,14 +330,10 @@ int main(void) {
     speedString = "S";
     distString = "D";
 
-    int cState = 0;
-    int dead = 0;
-    int vertAdc = 0;
-    int horAdc = 0;
-    int lH = 0;
-    int lV = 0;
-    int vert, hor;
-    int gear = 1;
+
+    int cState, dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor, gear;
+    cState = dead = vertAdc = horAdc = lH = lV = ldh = lndh = vert = hor = 0;
+    gear = 1;
 
     Message msg;
 
@@ -338,6 +351,7 @@ int main(void) {
         vertAdc = readADC(0);
         horAdc = readADC(1);
 
+
         if (vertAdc >= 1000) {
             vert = 1;
         } else if (vertAdc <= 200) {
@@ -345,7 +359,7 @@ int main(void) {
         } else {
             vert = 0;
         }
-        
+
         if (horAdc >= 1000) {
             hor = 1;
         } else if (horAdc <= 200) {
@@ -356,15 +370,19 @@ int main(void) {
 
         if ((dead = checkDead(dead))) {
 
-            if (!(PIND & (1<<6))) {
-                sendMessage(HONK, "2", NULL, msg);
+            if (!(PIND & (1<<6)) && (ldh != 1)) {
+                sendMessage(HONK, "2", "1", msg);
+                ldh = 1;
+            } else if ((PIND & (1<<6)) && (ldh != 0)) {
+                sendMessage(HONK, "2", "0", msg);
+                ldh = 0;
             } else if (lV != vert) {
                 lV = vert;
                 vertDrive(vert);
             } else if (lH != hor) {
                 lH = hor;
                 horDrive(hor);
-            }
+            } 
 
         } else {
 
@@ -385,10 +403,12 @@ int main(void) {
                 prev = 1;
             }
 
-            if (!(PIND & (1<<6))) {
-
-                sendMessage(HONK, "0", NULL, msg);
-
+            if (!(PIND & (1<<6)) && (lndh != 1)) {
+                sendMessage(HONK, "0", "1", msg);
+                lndh = 1;
+            } else if ((PIND & (1<<6)) && (lndh != 0)) {
+                sendMessage(HONK, "0", "0", msg);
+                lndh = 0;
             } else if (!(PIND & (1<<3))) {
 
                 switch (++gear) {
@@ -412,7 +432,7 @@ int main(void) {
                     selStr = currStr;
                     sendMessage(CSTSTRING, selStr, NULL, msg);
                 }
-            } 
+            }
         }
 
         writeToScreen(dead, gear);
