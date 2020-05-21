@@ -20,8 +20,8 @@
 #define	CS_HIGH()		PORTB |= (1<<PIN0)	/* Set MMC_CS = high */
 #define MMC_CD			1					/* Test if card detected.   yes:true, no:false, default:true */
 #define MMC_WP			0					/* Test if write protected. yes:true, no:false, default:false */
-#define	FCLK_SLOW()		SPCR = 0x51			/* Set SPI clock for initialization (100-400kHz) */
-#define	FCLK_FAST()		SPCR = 0x50			/* Set SPI clock for read/write (20MHz max) */
+#define	FCLK_SLOW()		do {} while(0)			/* Set SPI clock for initialization (100-400kHz) */
+#define	FCLK_FAST()		do {} while(0)			/* Set SPI clock for read/write (20MHz max) */
 
 /*--------------------------------------------------------------------------
 
