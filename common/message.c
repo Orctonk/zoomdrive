@@ -6,16 +6,26 @@
 #include <stdbool.h>
 #include <string.h>
 
+#ifndef RECEIVE_BUFFER_SIZE
+#define RECEIVE_BUFFER_SIZE 256
+#endif
+
+#if RECEIVE_BUFFER_SIZE > 256
+#define POS_TYPE uint16_t
+#else
+#define POS_TYPE uint8_t
+#endif
+
 // ------------- PRIVATE -------------
 
 static volatile MessageTopic listen_topic;  // The topic(s) which trigger callbacks
 static volatile MessageCallback callback;   // The registered callback or NULL if none
-static volatile char receive_buffer[256];   // Circular UART receive buffer
-static volatile uint16_t readPos = 0;       // Current receive buffer read pos
-static volatile uint16_t writePos = 0;      // Current receive buffer write pos
+static volatile char receive_buffer[RECEIVE_BUFFER_SIZE];   // Circular UART receive buffer
+static volatile POS_TYPE readPos = 0;       // Current receive buffer read pos
+static volatile POS_TYPE writePos = 0;      // Current receive buffer write pos
 
 // Increments @x and loops around to 0 if the new value is outside of buffer
-#define INCREMENT_LOOP(x) (x = ((x + 1) % 256))
+#define INCREMENT_LOOP(x) (x = ((x + 1) % RECEIVE_BUFFER_SIZE))
 
 // UART receive byte interrupt
 ISR(USART_RX_vect){
@@ -37,7 +47,7 @@ static void UART_PutChar(char c){
 // to the next newline
 bool readmsg(Message *msg){
     // Save readPos in case it needs to be reverted
-    uint16_t savedReadPos = readPos;
+    POS_TYPE savedReadPos = readPos;
 
     // Read topic
     char buf[4];
