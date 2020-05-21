@@ -28,11 +28,11 @@ DEBUG = true
 
 # C compiler/linker options
 CSTANDARD = --std=gnu99
-CTUNING = function-sections data-sections unsigned-char unsigned-bitfields pack-struct short-enums
+CTUNING = function-sections data-sections unsigned-char unsigned-bitfields pack-struct short-enums lto
 CWARN = all strict-prototypes
 OPTIMIZE = -Os
 CFLAGS = -mcall-prologues -mmcu=$(MCU)
-LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os
+LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os -flto
 DEFINES = F_CPU=8000000UL DRV_MMC=0
 
 # From this point nothing should be changed
@@ -69,6 +69,7 @@ $(OUT_DIR)/%.c.o: %.c
 
 program: $(TARGET_HEX)
 	$(AVRDUDE) -p $(AVRDUDE_DEVICE) -c $(PROGRAMMER) -P $(PORT) -U flash:w:$(TARGET_HEX)
+	avr-size $(TARGET_ELF) -C --mcu=$(MCU)
 
 .PHONY: clean
 
