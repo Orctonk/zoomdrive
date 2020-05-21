@@ -76,6 +76,11 @@ void engine_init(void){
     DDRB |= (1<< RIGHT_IN2);
     DDRD |= (1<< LEFT_IN1);
     DDRB |= (1<< LEFT_IN2);
+
+    PORTB &= ~(1<< RIGHT_IN1);
+    PORTB &= ~(1<< RIGHT_IN2);
+    PORTD &= ~(1<< LEFT_IN1);
+    PORTB &= ~(1<< LEFT_IN2);
 }
 
 /*
@@ -118,7 +123,7 @@ void recalc_engine(){
             right_wheel(0);
             left_wheel(speed);
         }
-       
+    }
      else{
         right_wheel(speed);
         left_wheel(speed);
