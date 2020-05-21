@@ -21,49 +21,79 @@ static bool sd_connected;
 // 100Hz clock to trigger disk I/O internal timer
 ISR(TIMER1_COMPA_vect){
 	disk_timerproc();	/* Drive timer procedure of low level disk I/O module */
-    //PORTD ^= (1<<PIN2);
 }
 
 // ------------- PUBLIC -------------
 
 // Initializes the SD-card
 void SD_Init(void){
-    SD_DDR |= (1<<SD_CS);
-    SD_PORT |= (1<<SD_CS);
+    DDRD &= ~(1<<PIN5);
+	PORTD |= (1<<PIN5);
+	DDRD |= (1<<PIN2);
+    SD_DDR |= (1<<SD_CS)|(1<<SD_POWER_PIN);
 
     // Start 100Hz timer
     OCR1A = F_CPU / 1024 / 100 - 1;
 	TCCR1A = 0;
 	TCCR1B = (1<<CS12) | (1<<CS10) | (1<<WGM12);
 	TIMSK1 = _BV(OCIE1A);
+}
 
-    sei();
-
+void SD_Start(void){
+    SD_PORT &= ~(1<<SD_POWER_PIN);
     sd_connected = (f_mount(&sd_fs, "", 1) == FR_OK);
+}
+
+void SD_Shutdown(void){
+    f_unmount("");
+    sd_connected = false;
+
+    SD_PORT |= (1<<SD_POWER_PIN);
+}
+
+void SD_Check(void){
+    if(PIND & (1<<PIN5)){
+        if(!SD_IsConnected()){
+            SD_Start();
+        }
+    } else if(SD_IsConnected()){
+        SD_Shutdown();
+    }
+
+    if(SD_IsConnected()){
+        PORTD |= (1<<PIN2);
+    } else {
+        PORTD &= ~(1<<PIN2);
+    }
 }
 
 // Writes a formated string to a connected SD-card
 // Note that the final string should not be over
 // 128 characters long including null terminator
-void SD_Write(char *fmt, ...){
+void SD_Write(uint32_t time, uint8_t type, char *msg){
     FRESULT fr;
     FIL logfile;
     // Attempt to open file
+
     if (sd_connected){
-        PORTD |= (1<<PIN2);
+        
         fr = f_open(&logfile, "bil.log", FA_WRITE | FA_OPEN_ALWAYS);
+        //sd_connected = (fr == FR_OK);
         if (fr == FR_OK) {
             // Seek to end of the file to append data
             fr = f_lseek(&logfile, f_size(&logfile));
+            //sd_connected = (fr == FR_OK);
             if (fr == FR_OK){
-                // Create string from format string and varargs
-                char buffer[128];
-                va_list args;
-                va_start(args,fmt);
-                vsnprintf(buffer,128,fmt,args);
-                f_puts(buffer,&logfile);    // Write constructed string to file
+                char buf[64];
+                sprintf(buf,"%lu %u %s\n",time,type,msg);
+                
+                f_puts(buf,&logfile);    // Write constructed string to file
             }
         }
         f_close(&logfile);  // Close log file and flush data buffer
     }
+}
+
+bool SD_IsConnected(void){
+    return sd_connected;
 }

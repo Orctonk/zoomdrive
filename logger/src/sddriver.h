@@ -11,16 +11,22 @@
 #include <stdbool.h>
 
 // Defines for the SD-card chip select pin
-#define SD_PORT PORTB
-#define SD_DDR  DDRB
-#define SD_CS   PIN0
+#define SD_PORT         PORTB
+#define SD_DDR          DDRB
+#define SD_CS           PIN0
+#define SD_POWER_PIN    PIN7
 
-// Initializes the SD-card
+// Initializes SD-card
 void SD_Init(void);
+
+// Updates state of SD-card depending on toggle
+void SD_Check(void);
 
 // Writes a formated string to a connected SD-card
 // Note that the final string should not be over
 // 128 characters long including null terminator
-void SD_Write(char *fmt, ...);
+void SD_Write(uint32_t time, uint8_t type, char *msg);
+
+bool SD_IsConnected(void);
 
 #endif // __SDDRIVER_H__
