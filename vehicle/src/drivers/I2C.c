@@ -7,7 +7,6 @@
  * 
  * 
  */
-#include <avr/io.h>
 
 #include "I2C.h"
 #include "i2cmaster.h"
@@ -20,16 +19,16 @@ void I2C_init(void){
 
 }
 
-
 /*
  * Turn on or off the green lamp.
  * 
  * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
  */
 void green_lamp(bool lamp_switch){
+	
 	if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
 		i2c_stop();
-		return 0;
+		return;
 	}
 	//Read current and apply new command.
 	uint8_t data = i2c_readAck(); 
@@ -39,15 +38,16 @@ void green_lamp(bool lamp_switch){
 	else {
 		data &= ~(1<< PIN1);
 	}
-
+	
 	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_WRITE ) != 0){
 		i2c_stop();
-		return 0;
+		return;
 	}
 	if( i2c_write(data) != 0) {
 		i2c_stop();
-		return 0;
+		return;
 	}
+	i2c_stop();
 }
 
 /*
@@ -58,7 +58,7 @@ void green_lamp(bool lamp_switch){
 void yellow_lamp(bool lamp_switch){
     if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
 		i2c_stop();
-		return 0;
+		return;
 	}
 	//Read current and apply new command.
 	uint8_t data = i2c_readAck(); 
@@ -71,22 +71,33 @@ void yellow_lamp(bool lamp_switch){
 
 	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_WRITE ) != 0){
 		i2c_stop();
-		return 0;
+		return;
 	}
 	if( i2c_write(data) != 0) {
 		i2c_stop();
-		return 0;
+		return;
 	}
+	i2c_stop();
 }
 
 /*
- *
+ * Returns true if the specified button is pressed. 
  */ 	
-void button_pressed(void){
+bool button_pressed(void){
+	if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
+		i2c_stop();
+		return;
+	}
+	uint8_t read = i2c_readAck();
+	read &= (1<<PIN5);
+	i2c_stop();
 
-
+	return read; 
 }
 
+/*
+ * Return true if the front distance sensor is within 15cm of an object. 
+ */
 uint16_t front_distance(void){
 	if( i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
 		i2c_stop();
@@ -107,7 +118,9 @@ uint16_t front_distance(void){
 	return distance; 
 }
 
-
+/*
+ * Return true if the back distance sensor is within 15cm of an object. 
+ */
 uint16_t back_distance(void){
 	if( i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
 		i2c_stop();

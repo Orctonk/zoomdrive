@@ -12,6 +12,7 @@
 #define I2C_H
 
 #include <stdbool.h>
+#include <avr/io.h>
 
 #define EXTENDER_SLAVE_ADRESS 0x70
 #define F_SENSOR_SLAVE_ADRESS 0xE0
@@ -35,6 +36,11 @@ void green_lamp(bool lamp_switch);
  * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
  */
 void yellow_lamp(bool lamp_switch); 
+
+/*
+ * Returns true if the specified button is pressed. 
+ */ 	
+bool button_pressed(void);
 
 /*
  * Return true if the front distance sensor is within 15cm of an object. 
