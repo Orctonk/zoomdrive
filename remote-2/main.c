@@ -150,7 +150,6 @@ void callback(Message msg) {
 
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
-                blink();
                 sendMessage(HEARTBEAT, "1", NULL, msg);
                 _delay_ms(50);
             }
@@ -168,6 +167,9 @@ void callback(Message msg) {
             break;
 
         case CARBUTTON:
+
+            // Safer - controlls correct input
+            
             if (!strcmp(msg.args[0], "1")) {
                 cBtn = 1;
                 summer_start();
@@ -175,6 +177,8 @@ void callback(Message msg) {
                 cBtn = 0;
                 summer_stop();
             }
+            
+
             break;
 
         case UPDATE:
@@ -200,7 +204,6 @@ void vertDrive(int dir) {
 
     Message msg;
     if (dir == 1) {
-        strcpy(msg.args[0], "1");
         sendMessage(ENGINE_POWER, "1", NULL, msg);
     } else if (dir == -1) {
         sendMessage(ENGINE_POWER, "-1", NULL, msg);
@@ -222,19 +225,13 @@ void horDrive(int dir) {
 }
 
 void writeToScreen(int dead, int gear) {
-
     writeString(currStr);
-
     writeString("  G:");
     writeData(gear+48);
-
     moveCursor(0b10010000);
-
     writeString("Selected:");
     writeString(selStr);
-
     writeData(' ');
-
     if (dead) {
         writeData('D');
     } else {
@@ -243,6 +240,7 @@ void writeToScreen(int dead, int gear) {
     writeData(cBtn + 48);
 
     moveCursor(0b10100000);
+    
 
     writeString("EB:");
     writeString(emStateString);
@@ -250,7 +248,6 @@ void writeToScreen(int dead, int gear) {
     writeString(speedString);
     writeString(" D:");
     writeString(distString);
-
 }
 
 
@@ -300,7 +297,8 @@ int cheatCodes(int cState) {
         } else if ((cState == 1) && (!(PIND & (1<<6)))){
             cState++;
         } else if ((cState == 2) && (!(PIND & (1<<3)))){
-            blink();
+            Message msg;
+            sendMessage(HONK, "3", NULL, msg);
             break;
         } else if (!(PIND & (1<<7)) && !(PIND & (1<<6))) {
             return 0;
@@ -340,6 +338,7 @@ int main(void) {
     inits();
     sei();
 
+
     // Loop as long as there is power in the MCU.
     while(1) {
 
@@ -352,17 +351,17 @@ int main(void) {
         horAdc = readADC(1);
 
 
-        if (vertAdc >= 530) {
+        if (vertAdc >= 800) {
             vert = 1;
-        } else if (vertAdc <= 470) {
+        } else if (vertAdc <= 400) {
             vert = -1;
         } else {
             vert = 0;
         }
 
-        if (horAdc >= 530) {
+        if (horAdc >= 800) {
             hor = 1;
-        } else if (horAdc <= 470) {
+        } else if (horAdc <= 400) {
             hor = -1;
         } else {
             hor = 0;
@@ -376,17 +375,21 @@ int main(void) {
             } else if ((PIND & (1<<6)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
-            } else if (lV != vert) {
+            } 
+
+            if (lV != vert) {
                 lV = vert;
                 vertDrive(vert);
-            } else if (lH != hor) {
+            }
+
+            if (lH != hor) {
                 lH = hor;
                 horDrive(hor);
             } 
 
         } else {
 
-            if ((horAdc <= 200)) {
+            if (hor == -1) {
 
                 menuRight();
                 if (prev) {
@@ -394,14 +397,14 @@ int main(void) {
                 }
                 prev = 0;
 
-            } else if ((horAdc >= 1000)) {
+            } else if (hor == 1) {
 
                 menuLeft();
                 if (!prev) {
                     menuLeft();
                 }
                 prev = 1;
-            }
+            } 
 
             if (!(PIND & (1<<6)) && (lndh != 1)) {
                 sendMessage(HONK, "0", "1", msg);
