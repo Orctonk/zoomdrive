@@ -47,6 +47,10 @@ void green_lamp(bool lamp_switch){
 		i2c_stop();
 		return;
 	}
+	if( i2c_write(data) != 0) {
+		i2c_stop();
+		return;
+	}
 	i2c_stop();
 }
 
@@ -70,6 +74,10 @@ void yellow_lamp(bool lamp_switch){
 	}
 
 	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_WRITE ) != 0){
+		i2c_stop();
+		return;
+	}
+	if( i2c_write(data) != 0) {
 		i2c_stop();
 		return;
 	}
