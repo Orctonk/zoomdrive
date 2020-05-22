@@ -18,7 +18,7 @@
 /*
  * Initialize 
  */
-void LED_strip_init(uint8_t);
+void LED_strip_init(void);
 
 /*
  * Turn on or off the right turn signal.

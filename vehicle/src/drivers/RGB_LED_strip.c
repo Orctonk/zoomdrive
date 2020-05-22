@@ -27,7 +27,7 @@ void __attribute__((noinline)) led_strip_write(rgb_color * colors, uint16_t coun
 /*
  * Initialize 
  */
-void LED_strip_init(uint8_t col){
+void LED_strip_init(void){
     STRIP_PORT &= ~(1<<STRIP_PIN);
     STRIP_DDR |= (1<<STRIP_PIN);
 
@@ -47,11 +47,17 @@ void turn_signal_right(bool lamp_switch){
     if(lamp_switch){
         colors[0] = (rgb_color){255,191,0};
         colors[1] = (rgb_color){255,191,0};
+
+        colors[6] = (rgb_color){255,191,0};
+        colors[7] = (rgb_color){255,191,0};
     } else{
         colors[0] = (rgb_color){0,0,0};
         colors[1] = (rgb_color){0,0,0};
+
+        colors[6] = (rgb_color){0,0,0};
+        colors[7] = (rgb_color){0,0,0};
     }
-    led_strip_write(colors,4);
+    led_strip_write(colors,8);
 }
 
 /*
@@ -63,13 +69,21 @@ void turn_signal_left(bool lamp_switch){
     if(lamp_switch){
         colors[2] = (rgb_color){255,126,0};
         colors[3] = (rgb_color){255,126,0};
+
+        colors[4] = (rgb_color){255,191,0};
+        colors[5] = (rgb_color){255,191,0};
     } else{
         colors[2] = (rgb_color){0,0,0};
         colors[3] = (rgb_color){0,0,0};
-    }
-}
 
-//Drivers got from 
+        colors[4] = (rgb_color){0,0,0};
+        colors[5] = (rgb_color){0,0,0};
+    }
+    led_strip_write(colors,8);
+}
+/************************************/
+ /*Following drivers got from Pololu*/
+
 void __attribute__((noinline)) led_strip_write(rgb_color * colors, uint16_t count)
 {
   // Set the pin to be an output driving low.
