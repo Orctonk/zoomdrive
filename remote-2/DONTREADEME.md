@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <stdio.h>
 #include "define.h"
 #include <stdlib.h>
 #include "summer.h"
@@ -48,12 +49,6 @@ void btnInit(void) {
     PORTD |= (1<<PIND3) | (1<<PIND6) | (1<<PIND7);
 }
 
-void joyStickInit(void) {
-
-    DDRC &= ~(1<<PINC2);
-    PORTC |= (1<<PINC2);
-}
-
 /*
    A function that initializes the ADC to be used.
 
@@ -91,32 +86,6 @@ int readADC(int channel) {
     return ADCW;
 }
 
-void menuRight(void) {
-    _delay_ms(10);
-    if (!(++strInt > 4)) {
-        currStr = nxtStr;
-        nxtStr = strings[strInt];
-    } else {
-        strInt = 0;
-        currStr = nxtStr;
-        nxtStr = strings[strInt];
-    }
-}
-
-void menuLeft(void) {
-
-    _delay_ms(10);
-    if (!(--strInt < 0)) {
-        nxtStr = currStr;
-        currStr = strings[strInt];
-    } else {
-        strInt = 4;
-        nxtStr = currStr;
-        currStr = strings[strInt];
-    }
-
-}
-
 void timeCallback(void) {
 
     if (lastCallback) {
@@ -151,9 +120,17 @@ void callback(Message msg) {
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
                 blink();
-                sendMessage(HEARTBEAT, "1", NULL, msg);
+                sendMessage(HEARTBEAT, "2", NULL, msg);
                 _delay_ms(50);
             }
+            break;
+
+        case DEADMAN:
+            
+            if (!strcmp(msg.args[0], "1")) {
+                PORTC ^= (1<<PINC5);
+            }
+
             break;
 
         case HONK:
@@ -223,17 +200,9 @@ void horDrive(int dir) {
 
 void writeToScreen(int dead, int gear) {
 
-    writeString(currStr);
 
-    writeString("  G:");
+    writeString(" G:");
     writeData(gear+48);
-
-    moveCursor(0b10010000);
-
-    writeString("Selected:");
-    writeString(selStr);
-
-    writeData(' ');
 
     if (dead) {
         writeData('D');
@@ -263,7 +232,6 @@ void inits(void) {
     summer_init();
     ADCInit();
     ledInit();
-    joyStickInit();
     btnInit();
     Message_Init(4800);
     Message_Register(0xff, callback);
@@ -287,49 +255,14 @@ int checkDead(int dead) {
     return dead;
 }
 
-int cheatCodes(int cState) {
-    while (1) {
-        clearDisplay();
-        writeString("Enter Code:");
-        writeData(cState+48);
-        moveCursor(0b10010000);
-        writeString("EXIT=6&7");
-
-        if (!cState && !(PIND & (1<<7))) {
-            cState++;
-        } else if ((cState == 1) && (!(PIND & (1<<6)))){
-            cState++;
-        } else if ((cState == 2) && (!(PIND & (1<<3)))){
-            blink();
-            break;
-        } else if (!(PIND & (1<<7)) && !(PIND & (1<<6))) {
-            return 0;
-        }
-        _delay_ms(50);
-
-    }
-    return 0;
-}
-
 /*
    The main loop that controlls the program flow. 
    */
 int main(void) {
 
-    strInt = prev = -1;
-
-    strings[0] = "st1";
-    strings[1] = "st2";
-    strings[2] = "st2";
-    strings[3] = "st3";
-    strings[4] = "CC";
-
-    selStr = currStr = strings[0];
-    nxtStr = strings[1];
     emStateString = "E";
     speedString = "S";
     distString = "D";
-
 
     int cState, dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor, gear;
     cState = dead = vertAdc = horAdc = lH = lV = ldh = lndh = vert = hor = 0;
@@ -350,6 +283,7 @@ int main(void) {
 
         vertAdc = readADC(0);
         horAdc = readADC(1);
+
 
 
         if (vertAdc >= 530) {
@@ -386,23 +320,6 @@ int main(void) {
 
         } else {
 
-            if ((horAdc <= 200)) {
-
-                menuRight();
-                if (prev) {
-                    menuRight();
-                }
-                prev = 0;
-
-            } else if ((horAdc >= 1000)) {
-
-                menuLeft();
-                if (!prev) {
-                    menuLeft();
-                }
-                prev = 1;
-            }
-
             if (!(PIND & (1<<6)) && (lndh != 1)) {
                 sendMessage(HONK, "0", "1", msg);
                 lndh = 1;
@@ -424,15 +341,7 @@ int main(void) {
                 }
                 _delay_ms(30);
 
-            } else if (!(PINC & (1<<2))) {
-
-                if (!strcmp(currStr, "CC")) {
-                    cState = cheatCodes(cState);
-                } else {
-                    selStr = currStr;
-                    sendMessage(CSTSTRING, selStr, NULL, msg);
-                }
-            }
+            } 
         }
 
         writeToScreen(dead, gear);
