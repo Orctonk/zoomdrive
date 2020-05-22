@@ -33,3 +33,8 @@ void turn_signal_right(bool lamp_switch);
  * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
  */     
 void turn_signal_left(bool lamp_switch); 
+
+/*
+ *
+ */
+void backing_lights(bool lamp_switch); 

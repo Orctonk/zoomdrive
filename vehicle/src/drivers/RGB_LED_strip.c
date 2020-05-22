@@ -81,6 +81,24 @@ void turn_signal_left(bool lamp_switch){
     }
     led_strip_write(colors,8);
 }
+
+void backing_lights(bool lamp_switch){
+if(lamp_switch){
+        colors[6] = (rgb_color){255,191,0};
+        colors[7] = (rgb_color){255,191,0};
+
+        colors[4] = (rgb_color){255,191,0};
+        colors[5] = (rgb_color){255,191,0};
+    } else{
+        colors[6] = (rgb_color){0,0,0};
+        colors[7] = (rgb_color){0,0,0};
+
+        colors[4] = (rgb_color){0,0,0};
+        colors[5] = (rgb_color){0,0,0};
+    }
+    led_strip_write(colors,8);
+
+}
 /************************************/
  /*Following drivers got from Pololu*/
 
