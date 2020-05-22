@@ -23,7 +23,7 @@
 #include "drivers/SPI.h"
 #include "drivers/LCD.h"
 #include "time.h"
-#include "drivers/summer.h"
+#include "summer.h"
 #include "drivers/engine.h"
 #include "drivers/I2C.h"
 #include "message.h"
@@ -42,13 +42,15 @@ bool cb_pressed;         // Car button status.
 bool dm1;                // Deadman's grip from controller 1.
 bool dm2;                // Deadman's grip from controller 2.
 
+uint8_t hemglass[] = { 0x02,0x0B,0x0E,0x0B,0x27,0x02,0x0B,0x0E,0x0B,0x27,0x02,0x2C,0x0C,0x29,0x09,0x67,0x00};
+
 /*
  * Initialze device by calling all initialization functions 
  */
 void init(void){ 
     SPI_init();
     LCD_init();
-    summer_init(); 
+    Summer_Init(); 
     engine_init();
     I2C_init();
     Time_Init(); 
@@ -96,14 +98,14 @@ void callback(Message msg){
       }
     }
     else if(msg.type == HONK){
-        if(!locked && !strcmp(msg.args[0],"2")) {
-            
-            if(!strcmp(msg.args[1],"1" )){
-                summer_start();
-            }
-            else if(!strcmp(msg.args[1],"0")){
-                summer_stop();
-            }
+        if(!locked && !strcmp(msg.args[0],"3")) {
+            Summer_PlayMelody(hemglass);
+            // if(!strcmp(msg.args[1],"1" )){
+            //     summer_start();
+            // }
+            // else if(!strcmp(msg.args[1],"0")){
+            //     summer_stop();
+            // }
         }
     }
     else if(msg.type == EMBUTTON){
@@ -191,8 +193,7 @@ int main(void) {
         //     Message_Send(update_msg, 1); 
         // }
 
-        //Check if in emergency state.LCD_set_cursor(0x10);
-            LCD_write_string("               "); 
+    
         if(locked){
             LED_PORT |= (1<<LED_PIN);
             engine_set_speed(0);
@@ -207,19 +208,25 @@ int main(void) {
         //Check in what direction the vehicle is going.
         if(engine_get_speed() == -1){
             //If the vehicle is backing, 
+            backing_lights(true);
             yellow_lamp(true); 
             LCD_set_cursor(0x10);
             LCD_write_string("Going backwards!");  
         }
         else if(engine_get_speed() > 0){
             //If the vehicle is driving forward
-            green_lamp(true);
             LCD_set_cursor(0x10);
             LCD_write_string("Going forward");  
         }
         else {
-            green_lamp(false);
+            backing_lights(false);
             yellow_lamp(false); 
+        }
+        if ((dm1 && dm2)||(!dm2 && !dm1)){
+          green_lamp(true);
+        }
+        else {
+            green_lamp(false);
         }
 
         //Check if vehicle is turning and set turn lights.
