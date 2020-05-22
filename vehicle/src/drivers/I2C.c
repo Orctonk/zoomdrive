@@ -11,6 +11,8 @@
 #include "I2C.h"
 #include "i2cmaster.h"
 
+#include <util/delay.h>
+
 /*
  * Initialize 
  */
@@ -26,7 +28,7 @@ void I2C_init(void){
  */
 void green_lamp(bool lamp_switch){
 	
-	if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
+	if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
 		i2c_stop();
 		return;
 	}
@@ -39,7 +41,7 @@ void green_lamp(bool lamp_switch){
 		data &= ~(1<< PIN1);
 	}
 	
-	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_WRITE ) != 0){
+	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS)|I2C_WRITE ) != 0){
 		i2c_stop();
 		return;
 	}
@@ -60,7 +62,7 @@ void green_lamp(bool lamp_switch){
  * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
  */
 void yellow_lamp(bool lamp_switch){
-    if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
+    if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
 		i2c_stop();
 		return;
 	}
@@ -73,7 +75,7 @@ void yellow_lamp(bool lamp_switch){
 		data &= ~(1<< PIN0);
 	}
 
-	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_WRITE ) != 0){
+	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS)|I2C_WRITE ) != 0){
 		i2c_stop();
 		return;
 	}
@@ -92,7 +94,7 @@ void yellow_lamp(bool lamp_switch){
  * Returns true if the specified button is pressed. 
  */ 	
 bool button_pressed(void){
-	if( i2c_start((EXTENDER_SLAVE_ADRESS<<1)|I2C_READ ) != 0){
+	if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
 		i2c_stop();
 		return;
 	}
@@ -107,19 +109,17 @@ bool button_pressed(void){
  * Return true if the front distance sensor is within 15cm of an object. 
  */
 uint16_t front_distance(void){
-	if( i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
-		i2c_stop();
-		return 0;
-	}
-	if( i2c_write(0x51) != 0) {
-		i2c_stop();
-		return 0;
-	}
-	if( i2c_rep_start((F_SENSOR_SLAVE_ADRESS)|I2C_READ ) != 0){
-		i2c_stop();
-		return 0;
-	}
-	uint16_t distance = (i2c_readAck()<<8);
+	i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE );
+	i2c_write(0x00);
+	i2c_write(0x51);
+	i2c_stop();
+
+	_delay_ms(70);
+
+	i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE);
+	i2c_write(0x02);
+	i2c_rep_start((F_SENSOR_SLAVE_ADRESS)|I2C_READ);
+	uint16_t distance = i2c_readAck() << 8;
 	distance |= i2c_readAck();
 	i2c_stop();
 
