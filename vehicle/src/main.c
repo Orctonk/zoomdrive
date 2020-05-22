@@ -145,8 +145,9 @@ int main(void) {
     Message_Register(0xff,callback);
     sei();
 
+
     LCD_set_cursor(0x00);
-    LCD_write_string("ZOOMDRIVE");
+    LCD_write_string("ZOOMDRIVE TM");
 
     Message update_msg;
     uint32_t curtime;
