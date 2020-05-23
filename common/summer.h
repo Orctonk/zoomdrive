@@ -7,11 +7,12 @@
 #ifndef __SUMMER_H__
 #define __SUMMER_H__
 
-#define NOTE_DURATION_MASK      (0b11100000)
-#define NOTE_PITCH_MASK         (~NOTE_DURATION_MASK)
-
-#define GET_DURATION_MULT(x)    ((x>>5) + 1)
-#define GET_PITCH_EXP(x)        (x & NOTE_PITCH_MASK)
+#define MELODY_HEMGLASS     0
+#define MELODY_USSR         1
+#define MELODY_HERR_GURKA   2
+#define MELODY_TWINKLE      3
+#define MELODY_COUNT        4
+#define MELODY_MAX_LEN      256
 
 #include <avr/io.h>
 
@@ -20,10 +21,9 @@
 #define SUMMER_PIN  PIN1
 
 // Initializes the summer
-void Summer_Init();
+void Summer_Init(void);
 
-void Summer_PlayMelody(const char *melody);
-
-void Summer_PlayNote(uint8_t note);
+// Plays a specified melody on the buzzer
+void Summer_PlayMelody(uint8_t melody);
 
 #endif // __SUMMER_H__
