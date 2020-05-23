@@ -14,7 +14,7 @@ uint8_t nextlog = 1;
 void init(void);
 void mqttCallback(Message msg);
 void timerCallback(void);
-void updateDisplay(void);
+void UpdateDisplay(void);
 void msgcat(char *dest, Message msg);
 
 int main(void)
