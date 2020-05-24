@@ -56,24 +56,24 @@ void left_wheel(int left){
  * Decides in what direction each wheel should go.
  */
 void recalc_engine(void){
-    if(degree == -1){
+    if(degree == 1){
         if(speed == 0){
             right_wheel(1);
             left_wheel(-1);
         }
         else {
-            right_wheel(speed);
-            left_wheel(0);
+            right_wheel(0);
+            left_wheel(speed);
         }  
     } 
-    else if (degree == 1){
+    else if (degree == -1){
         if(speed == 0){
             right_wheel(-1);
             left_wheel(1);
         }
         else {
-            right_wheel(0);
-            left_wheel(speed);
+            right_wheel(speed);
+            left_wheel(0);
         }
     }
      else{
