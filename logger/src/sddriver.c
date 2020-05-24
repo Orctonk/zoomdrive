@@ -19,7 +19,7 @@ static FATFS sd_fs;
 static bool sd_connected;
 
 // 100Hz clock to trigger disk I/O internal timer
-ISR(TIMER1_COMPA_vect){
+ISR(TIMER0_COMPA_vect){
 	disk_timerproc();	/* Drive timer procedure of low level disk I/O module */
 }
 
@@ -33,10 +33,10 @@ void SD_Init(void){
     SD_DDR |= (1<<SD_CS)|(1<<SD_POWER_PIN);
 
     // Start 100Hz timer
-    OCR1A = F_CPU / 1024 / 100 - 1;
-	TCCR1A = 0;
-	TCCR1B = (1<<CS12) | (1<<CS10) | (1<<WGM12);
-	TIMSK1 = _BV(OCIE1A);
+    OCR0A = F_CPU / 1024 / 100 - 1;
+	TCCR0A = (1<<WGM01);
+	TCCR0B = (1<<CS02) | (1<<CS00);
+	TIMSK0 = _BV(OCIE0A);
 }
 
 void SD_Start(void){
