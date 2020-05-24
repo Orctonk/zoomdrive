@@ -120,7 +120,7 @@ uint16_t front_distance(void){
 	i2c_write(0x02);
 	i2c_rep_start((F_SENSOR_SLAVE_ADRESS)|I2C_READ);
 	uint16_t distance = i2c_readAck() << 8;
-	distance |= i2c_readAck();
+	distance |= i2c_readNak();
 	i2c_stop();
 
 	return distance; 
@@ -130,20 +130,18 @@ uint16_t front_distance(void){
  * Return true if the back distance sensor is within 15cm of an object. 
  */
 uint16_t back_distance(void){
-	if( i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
-		i2c_stop();
-		return 0;
-	}
-	if( i2c_write(0x51) != 0) {
-		i2c_stop();
-		return 0;
-	}
-	if( i2c_rep_start((B_SENSOR_SLAVE_ADRESS)|I2C_READ ) != 0){
-		i2c_stop();
-		return 0;
-	}
-	uint16_t distance = (i2c_readAck()<<8);
-	distance |= i2c_readAck();
+	i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE );
+	i2c_write(0x00);
+	i2c_write(0x51);
+	i2c_stop();
+
+	_delay_ms(70);
+
+	i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE);
+	i2c_write(0x02);
+	i2c_rep_start((B_SENSOR_SLAVE_ADRESS)|I2C_READ);
+	uint16_t distance = i2c_readAck() << 8;
+	distance |= i2c_readNak();
 	i2c_stop();
 
 	return distance; 
