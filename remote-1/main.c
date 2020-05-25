@@ -5,6 +5,7 @@
 #include "summer.h"
 #include "../common/message.h"
 #include "../common/time.h"
+#include "../common/summer.h"
 #include <math.h>
 #include <string.h>
 #include <avr/interrupt.h>
