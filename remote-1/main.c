@@ -238,12 +238,12 @@ void inits(void) {
 int checkDead(int dead) {
     Message msg;
 
-    if (!(PIND & (1<<7)) && (dead != 1)) {
+    if (!(PINC & (1<<2)) && (dead != 1)) {
 
         sendMessage(DEADMAN, "2", "1", msg);
         _delay_ms(50);
         return 1;
-    } else if ((PIND & (1<<7)) && (dead != 0)) {
+    } else if ((PINC & (1<<2)) && (dead != 0)) {
 
         sendMessage(DEADMAN, "2", "0", msg);
         _delay_ms(50);
