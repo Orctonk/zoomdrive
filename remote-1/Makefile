@@ -33,7 +33,7 @@ CWARN = all strict-prototypes
 OPTIMIZE = -Os
 CFLAGS = -mcall-prologues -mmcu=$(MCU)
 LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os
-DEFINES = F_CPU=8000000UL DRV_MMC=0
+DEFINES = F_CPU=1000000UL DRV_MMC=0
 
 # From this point nothing should be changed
 ifeq ($(DEBUG),true)
