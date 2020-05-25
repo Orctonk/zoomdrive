@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "define.h"
 #include <stdlib.h>
-#include "summer.h"
 #include "../common/message.h"
 #include "../common/time.h"
 #include "../common/summer.h"
@@ -129,9 +128,9 @@ void callback(Message msg) {
         case HONK:
             if(!strcmp(msg.args[0], "0")) {
                 if (!strcmp(msg.args[1], "1")) {
-                    summer_start();
+                    Summer_Start();
                 } else {
-                    summer_stop();
+                    Summer_Stop();
                 }
             }
 
@@ -144,10 +143,10 @@ void callback(Message msg) {
         case CARBUTTON:
             if (!strcmp(msg.args[0], "1")) {
                 cBtn = 1;
-                summer_start();
+                Summer_Start();
             } else {
                 cBtn = 0;
-                summer_stop();
+                Summer_Stop();
             }
             break;
 
