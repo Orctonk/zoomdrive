@@ -27,7 +27,7 @@ char *strings[5];
 void blink(void) {
     PORTB |= (1<<PORTB6);
     _delay_ms(10);
-    PORTB &= ~(1<<PORTB7);
+    PORTB &= ~(1<<PORTB6);
     _delay_ms(10);
 }
 
