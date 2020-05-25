@@ -228,7 +228,7 @@ void inits(void) {
     Time_Init();
     Time_RegisterTimer(600, timeCallback);
     lcdInit();
-    summer_init();
+    Summer_Init();
     ADCInit();
     ledInit();
     btnInit();
