@@ -32,14 +32,14 @@ void blink(void) {
 }
 
 void ledInit(void) {
-    DDRC |= (1<<PINC5) | (1<<PINC4) | (1<<PINC3);
-    PORTC &= ~(1<<PINC5) | (1<<PINC4) | (1<<PINC3);
+    DDRB |= (1<<PINB6) | (1<<PINB7);
+    PORTB &= ~(1<<PINB6) | (1<<PINB7);
 }
 
 void btnInit(void) {
 
-    DDRD &= ~(1<<PIND3) | (1<<PIND6) | (1<<PIND7);
-    PORTD |= (1<<PIND3) | (1<<PIND6) | (1<<PIND7);
+    DDRC &= ~(1<<PINC2) | (1<<PINC1) | (1<<PINC0);
+    PORTC |= (1<<PINC2) | (1<<PINC1) | (1<<PINC0);
 }
 
 /*
@@ -258,7 +258,7 @@ int checkDead(int dead) {
    */
 int main(void) {
 
-    cString = "NaN";
+    cString = "Fjärr 1";
     emStateString = "E";
     speedString = "S";
     distString = "D";
@@ -295,10 +295,7 @@ int main(void) {
 
 
         // Kanke vänd på dessa???
-        /*
-         * Kanske sova.....
-         *
-         * */
+
         if (horAdc >= 530) {
             hor = 1;
         } else if (horAdc <= 470) {
@@ -325,9 +322,6 @@ int main(void) {
 
         } else {
 
-            /*
-             * End me 
-             * */
             if (!(PIND & (1<<6)) && (lndh != 1)) {
                 sendMessage(HONK, "1", "1", msg);
                 lndh = 1;
