@@ -14,7 +14,7 @@ AVRDUDE_DEVICE = m328p
 
 # Define project structure
 OUT_DIR  ?= ./build/fjarr1
-SRC_DIRS ?= . ../common/
+SRC_DIRS ?= ./ ../common/
 INC_DIRS ?= ./ ../common/
 
 # Toolchain
@@ -53,6 +53,7 @@ CFLAGS += $(addprefix -f,$(CTUNING))
 CFLAGS += $(addprefix -W,$(CWARN))
 CFLAGS += $(INC_FLAGS)
 CFLAGS += $(addprefix -D,$(DEFINES))
+CFLAGS += $(OPTIMIZE)
 
 all: $(TARGET_HEX)
 
