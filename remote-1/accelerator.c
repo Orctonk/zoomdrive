@@ -1,5 +1,6 @@
 #include "accelerator.h"
 #include <util/delay.h>
+#include <avr/io.h>
 #include <stdio.h>
 
 void accInit(){
