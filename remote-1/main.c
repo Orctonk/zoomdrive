@@ -258,7 +258,7 @@ int checkDead(int dead) {
    */
 int main(void) {
 
-    cString = "Fjärr 1";
+    cString = "Hej";
     emStateString = "E";
     speedString = "S";
     distString = "D";
