@@ -306,10 +306,10 @@ int main(void) {
 
         if ((dead = checkDead(dead))) {
 
-            if (!(PIND & (1<<6)) && (ldh != 1)) {
+            if (!(PINC & (1<<2)) && (ldh != 1)) {
                 sendMessage(HONK, "2", "1", msg);
                 ldh = 1;
-            } else if ((PIND & (1<<6)) && (ldh != 0)) {
+            } else if ((PINC & (1<<2)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
             } else if (lV != vert) {
@@ -322,13 +322,13 @@ int main(void) {
 
         } else {
 
-            if (!(PIND & (1<<6)) && (lndh != 1)) {
+            if (!(PINC & (1<<1)) && (lndh != 1)) {
                 sendMessage(HONK, "1", "1", msg);
                 lndh = 1;
-            } else if ((PIND & (1<<6)) && (lndh != 0)) {
+            } else if ((PINC & (1<<1)) && (lndh != 0)) {
                 sendMessage(HONK, "1", "0", msg);
                 lndh = 0;
-            } else if (!(PIND & (1<<3))) {
+            } else if (!(PINC & (1<<0))) {
 
                 switch (++gear) {
                     case 2:
