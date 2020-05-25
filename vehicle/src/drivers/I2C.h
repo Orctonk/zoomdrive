@@ -43,6 +43,17 @@ void yellow_lamp(bool lamp_switch);
 bool button_pressed(void);
 
 /*
+ * Returns true if a collision is detected on the right side
+ */
+bool right_collision();
+
+/*
+ * Returns true if a collision is detected on the left side
+ */
+bool left_collision();
+
+
+/*
  * Return true if the front distance sensor is within 15cm of an object. 
  */
 uint16_t front_distance(void); 

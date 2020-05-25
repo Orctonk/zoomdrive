@@ -13,6 +13,8 @@
 
 #include <util/delay.h>
 
+#include "LCD.h"
+#include <stdlib.h>
 /*
  * Initialize 
  */
@@ -96,29 +98,90 @@ void yellow_lamp(bool lamp_switch){
 bool button_pressed(void){
 	if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
 		i2c_stop();
-		return;
+		return 1;
 	}
 	uint8_t read = i2c_readAck();
-	read &= (1<<PIN5);
-	i2c_stop();
+	uint8_t ret_read = read & (1<<PIN4);
 
-	return read; 
+	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS)| I2C_WRITE) !=0){
+		i2c_stop();
+		return 0; 
+	}
+
+	read |= (1<< PIN4);
+	i2c_write(read);
+	i2c_stop();
+	return !ret_read; 
 }
+
+/*
+ * Returns true if a collision is detected on the right side
+ */
+bool right_collision(){
+	if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
+		i2c_stop();
+		return 1;
+	}
+	uint8_t read = i2c_readAck();
+	uint8_t ret_read = read & (1<<PIN2);
+
+	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS)| I2C_WRITE) !=0){
+		i2c_stop();
+		return 0; 
+	}
+
+	read |= (1<< PIN2);
+	i2c_write(read);
+	i2c_stop();
+	return !ret_read;
+}
+
+/*
+ * Returns true if a collision is detected on the left side
+ */
+bool left_collision(){
+	if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
+		i2c_stop();
+		return 1;
+	}
+	uint8_t read = i2c_readAck();
+	uint8_t ret_read = read & (1<<PIN3);
+
+	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS)| I2C_WRITE) !=0){
+		i2c_stop();
+		return 0; 
+	}
+
+	read |= (1<< PIN3);
+	i2c_write(read);
+	i2c_stop();
+	return !ret_read;
+}
+
 
 /*
  * Return true if the front distance sensor is within 15cm of an object. 
  */
 uint16_t front_distance(void){
-	i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE );
+	if (i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
+		i2c_stop();
+		return 0;
+	}
 	i2c_write(0x00);
 	i2c_write(0x51);
 	i2c_stop();
 
 	_delay_ms(70);
 
-	i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE);
+	if(i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE) != 0){
+		i2c_stop();
+		return 0;
+	}
 	i2c_write(0x02);
-	i2c_rep_start((F_SENSOR_SLAVE_ADRESS)|I2C_READ);
+	if(i2c_rep_start((F_SENSOR_SLAVE_ADRESS)|I2C_READ)){
+		i2c_stop();
+		return 0;
+	}
 	uint16_t distance = i2c_readAck() << 8;
 	distance |= i2c_readNak();
 	i2c_stop();
@@ -130,16 +193,25 @@ uint16_t front_distance(void){
  * Return true if the back distance sensor is within 15cm of an object. 
  */
 uint16_t back_distance(void){
-	i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE );
+	if (i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
+		i2c_stop();
+		return 0;
+	}
 	i2c_write(0x00);
 	i2c_write(0x51);
 	i2c_stop();
 
 	_delay_ms(70);
 
-	i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE);
+	if(i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE) != 0){
+		i2c_stop();
+		return 0;
+	}
 	i2c_write(0x02);
-	i2c_rep_start((B_SENSOR_SLAVE_ADRESS)|I2C_READ);
+	if(i2c_rep_start((B_SENSOR_SLAVE_ADRESS)|I2C_READ)){
+		i2c_stop();
+		return 0;
+	}
 	uint16_t distance = i2c_readAck() << 8;
 	distance |= i2c_readNak();
 	i2c_stop();
