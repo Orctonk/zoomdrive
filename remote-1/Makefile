@@ -36,7 +36,7 @@ LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os
 DEFINES = F_CPU=8000000UL DRV_MMC=0
 
 # From this point nothing should be changed
-ifeq($(DEBUG),true)
+ifeq ($(DEBUG),true)
 	CFLAGS += -g
 	DEFINES += DEBUG
 endif
