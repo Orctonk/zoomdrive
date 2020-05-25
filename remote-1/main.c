@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "../common/message.h"
 #include "../common/time.h"
-#include "../common/summer.h"
+#include "summer.h"
 #include <math.h>
 #include <string.h>
 #include <avr/interrupt.h>
@@ -128,9 +128,9 @@ void callback(Message msg) {
         case HONK:
             if(!strcmp(msg.args[0], "0")) {
                 if (!strcmp(msg.args[1], "1")) {
-                    Summer_Start();
+                    summer_start();
                 } else {
-                    Summer_Stop();
+                    summer_stop();
                 }
             }
 
@@ -143,10 +143,10 @@ void callback(Message msg) {
         case CARBUTTON:
             if (!strcmp(msg.args[0], "1")) {
                 cBtn = 1;
-                Summer_Start();
+                summer_start();
             } else {
                 cBtn = 0;
-                Summer_Stop();
+                summer_stop();
             }
             break;
 
@@ -227,7 +227,7 @@ void inits(void) {
     Time_Init();
     Time_RegisterTimer(600, timeCallback);
     lcdInit();
-    Summer_Init();
+    summer_init();
     ADCInit();
     ledInit();
     btnInit();
