@@ -375,7 +375,7 @@ int main(void) {
             } else if ((PIND & (1<<6)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
-            } 
+            } t 
 
             if (lV != vert) {
                 lV = vert;
