@@ -89,6 +89,7 @@ void timeCallback(void) {
 
 void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
     int argc =  1;
+    blink();
     msg.type = topic;
     strcpy(msg.args[0], payLoad1);
     if (payLoad2) {
