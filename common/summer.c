@@ -15,7 +15,7 @@
 #define NOTE_DURATION_MASK      (0b11100000)
 #define NOTE_PITCH_MASK         (~NOTE_DURATION_MASK)
 
-#define GET_DURATION_DIV(x)    (1<<(x>>5))
+#define GET_DURATION_DIV(x)     (1<<(x>>5))
 #define GET_PITCH_EXP(x)        ((x & NOTE_PITCH_MASK) - 1)
 
 // Defines for pitch values
@@ -64,6 +64,11 @@ static const uint8_t melodies[MELODY_COUNT][MELODY_MAX_LEN] PROGMEM = {
     }
 };
 
+#ifdef SUMMER_USE_SW
+#include <stdbool.h>
+static volatile bool rest = false;
+#endif
+
 // BPM for each melody
 static const uint8_t bpms[MELODY_COUNT] = { 110, 75, 128, 100 };
 
@@ -75,9 +80,17 @@ static volatile uint8_t current_note;   // The index of the curent note
 // Plays a single note on the buzzer
 void Summer_PlayNote(uint8_t note){
     if(GET_PITCH_EXP(note) == -1){  // Stop buzzer if note is a rest
+#ifdef SUMMER_USE_SW
+        rest = true;
+#else
         TCCR1A &= ~(1<<COM1A0);
+#endif
     } else{                         // Start buzzer and set correct frequency
+#ifdef SUMMER_USE_SW
+        rest = false;
+#else
         TCCR1A |= (1<<COM1A0);
+#endif
         OCR1A = LOWC_OCR / (pow(ROOT12_2,GET_PITCH_EXP(note)));
     }
     // cycles needed = frequency / (bar time) / (note length divisor)
@@ -87,6 +100,12 @@ void Summer_PlayNote(uint8_t note){
 // Interrupt vector to play next note after the current notes length is passed
 // Stops the melody when it encounters a 0xFF
 ISR(TIMER1_COMPA_vect){
+#ifdef SUMMER_USE_SW
+    if(rest)
+        SW_SUMMER_PORT &= ~(1<<SUMMER_PIN);
+    else
+        SW_SUMMER_PORT ^= (1<<SUMMER_PIN);
+#endif
     note_time--; 
     if (note_time == 0){
         current_note++;
@@ -106,7 +125,11 @@ ISR(TIMER1_COMPA_vect){
 void Summer_Init(void){
     SUMMER_DDR |= (1<<SUMMER_PIN);
     // Start timer
+#ifdef SUMMER_USE_SW
+    TCCR1A = 0;
+#else
     TCCR1A = (1<<COM1A0);
+#endif
     TCCR1B = (1<<WGM12);
 }
 
