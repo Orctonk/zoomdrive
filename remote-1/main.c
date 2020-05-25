@@ -25,9 +25,9 @@ char *nxtStr;
 char *strings[5];
 
 void blink(void) {
-    PORTC |= (1<<PORTC5);
+    PORTB |= (1<<PORTB6);
     _delay_ms(10);
-    PORTC &= ~(1<<PORTC5);
+    PORTB &= ~(1<<PORTB7);
     _delay_ms(10);
 }
 
