@@ -13,7 +13,7 @@ MCU = atmega328p
 AVRDUDE_DEVICE = m328p
 
 # Define project structure
-OUT_DIR  ?= ./build
+OUT_DIR  ?= ./build/fjarr1
 SRC_DIRS ?= ./src ../common/
 INC_DIRS ?= ./ ../common/
 
