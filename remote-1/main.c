@@ -105,13 +105,14 @@ void callback(Message msg) {
 
     cli();
     switch(msg.type) {
+        Message msg;
 
         case HEARTBEAT:
             lastCallback = 0;
-            PORTB &= ~(1<<PINB6);
-
+            blink();
+            //PORTB &= ~(1<<PINB6);
             if (!strcmp(msg.args[0], "0")) {
-                Message msg;
+                //Message msg;
                 sendMessage(HEARTBEAT, "2", NULL, msg);
                 _delay_ms(50);
             }
