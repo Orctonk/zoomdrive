@@ -6,7 +6,6 @@
  */
 
 #include <avr/interrupt.h>
-#include <stdio.h>
 
 #include "sddriver.h"
 #include "FatFs/ff.h"
@@ -84,10 +83,7 @@ void SD_Write(uint32_t time, uint8_t type, char *msg){
             fr = f_lseek(&logfile, f_size(&logfile));
             //sd_connected = (fr == FR_OK);
             if (fr == FR_OK){
-                char buf[64];
-                sprintf(buf,"%lu %u %s\n",time,type,msg);
-                
-                f_puts(buf,&logfile);    // Write constructed string to file
+                f_printf(&logfile,"%lu %u %s\n",time,type,msg);    // Write constructed string to file
             }
         }
         f_close(&logfile);  // Close log file and flush data buffer
