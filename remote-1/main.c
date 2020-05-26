@@ -10,6 +10,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h> 
 #include "lcd.h"
+#include "accelerator.h"
 
 
 // Global variables
