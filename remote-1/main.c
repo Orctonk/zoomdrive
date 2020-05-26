@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include "define.h"
 #include <stdlib.h>
+#include "summer.h"
 #include "../common/message.h"
 #include "../common/time.h"
-#include "summer.h"
 #include <math.h>
 #include <string.h>
 #include <avr/interrupt.h>
@@ -25,21 +25,21 @@ char *nxtStr;
 char *strings[5];
 
 void blink(void) {
-    PORTB |= (1<<PORTB6);
+    PORTC |= (1<<PORTC5);
     _delay_ms(10);
-    PORTB &= ~(1<<PORTB6);
+    PORTC &= ~(1<<PORTC5);
     _delay_ms(10);
 }
 
 void ledInit(void) {
-    DDRB |= (1<<PINB6) | (1<<PINB7);
-    PORTB &= ~(1<<PINB6) | (1<<PINB7);
+    DDRC |= (1<<PINC5) | (1<<PINC4) | (1<<PINC3);
+    PORTC &= ~(1<<PINC5) | (1<<PINC4) | (1<<PINC3);
 }
 
 void btnInit(void) {
 
-    DDRC &= ~(1<<PINC2) | (1<<PINC1) | (1<<PINC0);
-    PORTC |= (1<<PINC2) | (1<<PINC1) | (1<<PINC0);
+    DDRD &= ~(1<<PIND3) | (1<<PIND6) | (1<<PIND7);
+    PORTD |= (1<<PIND3) | (1<<PIND6) | (1<<PIND7);
 }
 
 /*
@@ -82,7 +82,7 @@ int readADC(int channel) {
 void timeCallback(void) {
 
     if (lastCallback) {
-        PORTB |= (1<<PINB6);
+        PORTC |= (1<<PINC4);
     }
     lastCallback = 1;
 }
@@ -105,14 +105,13 @@ void callback(Message msg) {
 
     cli();
     switch(msg.type) {
-        Message msg;
 
         case HEARTBEAT:
             lastCallback = 0;
-            blink();
-            //PORTB &= ~(1<<PINB6);
+            PORTC &= ~(1<<PINC4);
+
             if (!strcmp(msg.args[0], "0")) {
-                //Message msg;
+                Message msg;
                 sendMessage(HEARTBEAT, "2", NULL, msg);
                 _delay_ms(50);
             }
@@ -121,7 +120,7 @@ void callback(Message msg) {
         case DEADMAN:
             
             if (!strcmp(msg.args[0], "1")) {
-                PORTC ^= (1<<PINC2);
+                PORTC ^= (1<<PINC5);
             }
 
             break;
@@ -153,11 +152,10 @@ void callback(Message msg) {
 
         case UPDATE:
             if (!strcmp(msg.args[0], "1")) {
-                PORTB |= (1<<PINB7);
+                PORTC |= (1<<PINC3);
             } else {
-                PORTB &= ~(1<<PINB7);
+                PORTC &= ~(1<<PINC3);
             }
-
             strcpy(emStateString, msg.args[0]);
             strcpy(speedString, msg.args[1]);
             strcpy(distString, msg.args[2]);
@@ -240,12 +238,12 @@ void inits(void) {
 int checkDead(int dead) {
     Message msg;
 
-    if (!(PINC & (1<<2)) && (dead != 1)) {
+    if (!(PIND & (1<<7)) && (dead != 1)) {
 
         sendMessage(DEADMAN, "2", "1", msg);
         _delay_ms(50);
         return 1;
-    } else if ((PINC & (1<<2)) && (dead != 0)) {
+    } else if ((PIND & (1<<7)) && (dead != 0)) {
 
         sendMessage(DEADMAN, "2", "0", msg);
         _delay_ms(50);
@@ -260,7 +258,7 @@ int checkDead(int dead) {
    */
 int main(void) {
 
-    cString = "Hej";
+    cString = "NaN";
     emStateString = "E";
     speedString = "S";
     distString = "D";
@@ -297,7 +295,10 @@ int main(void) {
 
 
         // Kanke vänd på dessa???
-
+        /*
+         * Kanske sova.....
+         *
+         * */
         if (horAdc >= 530) {
             hor = 1;
         } else if (horAdc <= 470) {
@@ -308,10 +309,10 @@ int main(void) {
 
         if ((dead = checkDead(dead))) {
 
-            if (!(PINC & (1<<2)) && (ldh != 1)) {
+            if (!(PIND & (1<<6)) && (ldh != 1)) {
                 sendMessage(HONK, "2", "1", msg);
                 ldh = 1;
-            } else if ((PINC & (1<<2)) && (ldh != 0)) {
+            } else if ((PIND & (1<<6)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
             } else if (lV != vert) {
@@ -324,13 +325,16 @@ int main(void) {
 
         } else {
 
-            if (!(PINC & (1<<1)) && (lndh != 1)) {
+            /*
+             * End me 
+             * */
+            if (!(PIND & (1<<6)) && (lndh != 1)) {
                 sendMessage(HONK, "1", "1", msg);
                 lndh = 1;
-            } else if ((PINC & (1<<1)) && (lndh != 0)) {
+            } else if ((PIND & (1<<6)) && (lndh != 0)) {
                 sendMessage(HONK, "1", "0", msg);
                 lndh = 0;
-            } else if (!(PINC & (1<<0))) {
+            } else if (!(PIND & (1<<3))) {
 
                 switch (++gear) {
                     case 2:
