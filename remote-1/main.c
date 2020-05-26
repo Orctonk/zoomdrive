@@ -154,9 +154,9 @@ void callback(Message msg) {
 
         case UPDATE:
             if (!strcmp(msg.args[0], "1")) {
-                PORTC |= (1<<PINC3);
+                PORTB |= (1<<PINB7);
             } else {
-                PORTC &= ~(1<<PINC3);
+                PORTB &= ~(1<<PINB7);
             }
             strcpy(emStateString, msg.args[0]);
             strcpy(speedString, msg.args[1]);
@@ -233,6 +233,7 @@ void inits(void) {
     ADCInit();
     ledInit();
     btnInit();
+    accInit();
     Message_Init(4800);
     Message_Register(0xff, callback);
 }
