@@ -4,13 +4,17 @@
 #include "time.h"
 
 #include <stdlib.h>
-#include <avr/pgmspace.h>
+#include <string.h>
 
 #define STATUS_BTN_PRESS() (!(PINB & (1<<PIN6)))
+
+#include "bitmaps.h"
 
 typedef struct SystemStatus {
     int8_t carSpeed;
     int8_t carHeading;
+	char carDistFront[6];
+	char carDistBack[6];
     uint8_t carGear;
     bool embreaked;
     uint32_t remote1_lasthb;
@@ -49,12 +53,33 @@ void Logger_UpdateDisplay(void) {
 			u8g_DrawStr(&u8g, 0, 10, "Status:");
             if(status.embreaked)
                 u8g_DrawStr(&u8g,0,20, "BREAKED!");
-            u8g_DrawStr(&u8g,90,10, "R1:");
-            u8g_DrawStr(&u8g,110,10,t - status.remote1_lasthb > 3000 ? "N" : "Y");
-            u8g_DrawStr(&u8g,90,20, "R2:");
-            u8g_DrawStr(&u8g,110,20,t - status.remote2_lasthb > 3000 ? "N" : "Y");
-            u8g_DrawStr(&u8g,90,30, "SD:");
-            u8g_DrawStr(&u8g,110,30,SD_IsConnected() ? "Y" : "N");
+            u8g_DrawStr(&u8g,67,10, "SD:");
+            u8g_DrawStr(&u8g,85,10,SD_IsConnected() ? "Y" : "N");
+            u8g_DrawStr(&u8g,102,10, "R1:");
+            u8g_DrawStr(&u8g,120,10,t - status.remote1_lasthb > 3000 ? "N" : "Y");
+            u8g_DrawStr(&u8g,102,20, "R2:");
+            u8g_DrawStr(&u8g,120,20,t - status.remote2_lasthb > 3000 ? "N" : "Y");
+            u8g_DrawBitmapP(&u8g,26,32,8,28,carimage);
+			if(status.carSpeed < 0){
+				u8g_DrawBitmapP(&u8g,26,40,1,11,backarrow);
+				if(status.carHeading == 1)
+					u8g_DrawBitmapP(&u8g,27,55,1,4,turnarrowright);
+				else if(status.carHeading == -1)
+					u8g_DrawBitmapP(&u8g,27,33,1,4,turnarrowleft);
+			}
+			else if(status.carSpeed > 0){
+				for(uint8_t i = 0; i < status.carGear; i++)
+			//	for(uint8_t i = 0; i < 3; i++)
+					u8g_DrawBitmapP(&u8g,84 + 5*i,40,1,11,forwardarrow);
+				if(status.carHeading == 1)
+					u8g_DrawBitmapP(&u8g,83,55,1,4,turnarrowright);
+				else if(status.carHeading == -1)
+					u8g_DrawBitmapP(&u8g,83,33,1,4,turnarrowleft);
+			}
+			u8g_DrawBitmapP(&u8g,0,40,3,11,backdistarrow);
+			u8g_DrawStr(&u8g,0,60, status.carDistBack);
+			u8g_DrawBitmapP(&u8g,104,40,3,11,frontdistarrow);
+			u8g_DrawStr(&u8g,104,60, status.carDistFront);
 		}
 		else{
 			for(uint8_t i = 0; i < 6; i++){
@@ -68,9 +93,18 @@ void messageCallback(Message msg) {
 	msgcat(logs[nextlog], msg);
 
     switch(msg.type){
-    case UPDATE:
+    case UPDATE_EM:
         status.embreaked = msg.args[0][0] != '0';
         break;
+	case UPDATE_STATE:
+		status.carSpeed = atoi(msg.args[0]);
+		status.carHeading = atoi(msg.args[1]);
+		status.carGear = atoi(msg.args[2]);
+		break;
+	case UPDATE_SENSORS:
+		strcpy(status.carDistFront,msg.args[0]);
+		strcpy(status.carDistBack,msg.args[1]);
+		break;
     case ENGINE_POWER:
         status.carSpeed = atoi(msg.args[0]);
         break;
@@ -140,7 +174,7 @@ void msgcat(char *dest, Message msg){
 		progStr = PSTR("GEARSET");
 		argc = 1;
 		break;
-	case UPDATE:
+	case UPDATE_STATE:
 		progStr = PSTR("CARSTATE");
 		argc = 3;
 		break;
@@ -154,6 +188,14 @@ void msgcat(char *dest, Message msg){
 	case COLLISION:
 		progStr = PSTR("COLLISION");
 		argc = 2;
+		break;
+	case UPDATE_SENSORS:
+		progStr = PSTR("SENSORS");
+		argc = 2;
+		break;
+	case UPDATE_EM:
+		progStr = PSTR("EMSTATE");
+		argc = 1;
 		break;
 	default:
 		break;
