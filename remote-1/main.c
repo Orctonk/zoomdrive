@@ -83,14 +83,13 @@ int readADC(int channel) {
 void timeCallback(void) {
 
     if (lastCallback) {
-        PORTC |= (1<<PINC4);
+        PORTB |= (1<<PINB6);
     }
     lastCallback = 1;
 }
 
 void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
     int argc =  1;
-    blink();
     msg.type = topic;
     strcpy(msg.args[0], payLoad1);
     if (payLoad2) {
@@ -110,7 +109,7 @@ void callback(Message msg) {
 
         case HEARTBEAT:
             lastCallback = 0;
-            PORTC &= ~(1<<PINC4);
+            PORTB &= ~(1<<PINB6);
 
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
@@ -122,7 +121,7 @@ void callback(Message msg) {
         case DEADMAN:
             
             if (!strcmp(msg.args[0], "1")) {
-                PORTC ^= (1<<PINC5);
+                PORTC ^= (1<<PINC2);
             }
 
             break;
@@ -158,6 +157,7 @@ void callback(Message msg) {
             } else {
                 PORTB &= ~(1<<PINB7);
             }
+
             strcpy(emStateString, msg.args[0]);
             strcpy(speedString, msg.args[1]);
             strcpy(distString, msg.args[2]);
