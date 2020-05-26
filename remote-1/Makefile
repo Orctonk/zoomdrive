@@ -1,5 +1,5 @@
 # Change these to reflect your project
-TARGET ?= project-name 
+TARGET ?= remote-1
 PORT ?= /dev/ttyACM0
 SPORT ?= /dev/ttyUSB0
 
