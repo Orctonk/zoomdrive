@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #include "RGB_LED_strip.h"
+#include "summer.h"
 
 #define LED_COUNT 20
 
@@ -82,6 +83,11 @@ void turn_signal_left(bool lamp_switch){
     led_strip_write(colors,8);
 }
 
+/*
+ * Will turn on the back lights.
+ *  
+ * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
+ */
 void backing_lights(bool lamp_switch){
 if(lamp_switch){
         colors[6] = (rgb_color){255,191,0};
@@ -97,7 +103,71 @@ if(lamp_switch){
         colors[5] = (rgb_color){0,0,0};
     }
     led_strip_write(colors,8);
+}
 
+/*
+ * Will make the LED strip blue.
+ */
+void LED_blue(void){
+    for(int i = 8; i < LED_COUNT; i++){
+        colors[i] = (rgb_color){0, 0, 255};
+    }
+    led_strip_write(colors, LED_COUNT);
+     
+}
+
+/*
+ * Will make the LED strip yellow.
+ */
+void LED_yellow(void){
+    for(int i = 8; i < LED_COUNT; i++){
+        colors[i] = (rgb_color){255,191,0};
+    }
+    led_strip_write(colors, LED_COUNT);
+     
+}
+
+/*
+ * Will make the LED strip red.
+ */
+void LED_red(void){
+    for(int i = 8; i < LED_COUNT; i++){
+        colors[i] = (rgb_color){ 255, 0, 0 };
+    }
+    led_strip_write(colors, LED_COUNT);
+     
+}
+/*
+ * Will make the LED strip green.
+ */
+void LED_green(void){
+    for(int i = 8; i < LED_COUNT; i++){
+        colors[i] = (rgb_color){0, 255, 0 };
+    }
+    led_strip_write(colors, LED_COUNT);
+     
+}
+
+/*
+ * Will give the LED strip a colour based on the parameter. 
+ */
+void LED_lights(int i){
+    switch (i)
+    {
+    case MELODY_HEMGLASS:
+        LED_blue();
+        break;
+    case MELODY_HERR_GURKA:
+        LED_green();
+        break;
+    case MELODY_TWINKLE:
+        LED_yellow();
+        break; 
+    case MELODY_USSR:
+        LED_red();
+    default:
+        break;
+    }
 }
 /************************************/
  /*Following drivers got from Pololu*/

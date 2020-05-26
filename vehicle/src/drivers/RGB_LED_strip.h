@@ -35,6 +35,13 @@ void turn_signal_right(bool lamp_switch);
 void turn_signal_left(bool lamp_switch); 
 
 /*
- *
+ * Will turn on the back lights.
+ *  
+ * lamp_switch: If 1, turn lamp on. If 0, turn lamp off.
  */
 void backing_lights(bool lamp_switch); 
+
+/*
+ * Will give the LED strip a colour based on the parameter. 
+ */
+void LED_lights(int i);
