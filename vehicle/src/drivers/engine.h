@@ -32,31 +32,41 @@
 void engine_init(void);
 
 /*
- * Set speed of viecle.
+ * Set direction of viecle.
  * 
- * speed: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
+ * direction: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
  */
-void engine_set_speed(int8_t speed);
+void engine_set_direction(int8_t new_direction);
 
 /*
  * Make the viecle turn.
  * 
  * degree: 0 if forward, 1 if right, -1 if left.
  */
-void engine_turn(int8_t degree);
+void engine_turn(int8_t new_degree);
 
 /*
- * Get the speed of the vheicle.  
  * 
- * Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
  */
-int engine_get_speed(void);
+int engine_set_gear(int8_t new_gear);
+
+/*
+ * Get the direction of the vheicle.  
+ * 
+ * Return: 1, if moving forward normal direction. -1 if moving backwards. 0 if standing still.
+ */
+int engine_get_direction(void);
 
 /*
  * Get the heading of the vheicle.  
  * 
- * Return: 1, if moving right normal speed. -1 if moving left. 0 if standing still.
+ * Return: 1, if moving right normal direction. -1 if moving left. 0 if standing still.
  */
 int engine_get_heading(void);
+
+/*
+ * Retruns the gear, the speed level of the vehicle.
+ */
+int engine_get_gear(void); 
 
 #endif 

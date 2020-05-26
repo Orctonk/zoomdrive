@@ -10,12 +10,15 @@
 
 #include "engine.h"
 
-int duty_cycle = 150; 
-int speed = 0; 
+int duty_cycle = 200; 
+int back_duty_cycle = 200;
+int direction = 0; 
 int degree = 0;
+int gear = 1;
+ 
 
 /*
- * Set speed for right wheel
+ * Set direction for right wheel
  */
 void right_wheel(int right){
     if(right == 1){
@@ -24,7 +27,7 @@ void right_wheel(int right){
         PORTB &= ~(1<< RIGHT_IN2);
     }
     else if(right == -1){
-        OCR0A = duty_cycle;
+        OCR0A = back_duty_cycle;
         PORTB |= (1<< RIGHT_IN2);
         PORTB &= ~(1<< RIGHT_IN1);
     }
@@ -34,16 +37,16 @@ void right_wheel(int right){
 }
 
 /*
- * Set speed for left wheel
+ * Set direction for left wheel
  */
 void left_wheel(int left){
-    if(left == 1){
+    if(left >= 1){
         OCR0B = duty_cycle;
         PORTD &= ~(1<< LEFT_IN1);
         PORTB |= (1<< LEFT_IN2);
     }
     else if(left == -1){
-        OCR0B = duty_cycle;
+        OCR0B = back_duty_cycle;
         PORTD |= (1<< LEFT_IN1);
         PORTB &= ~(1<< LEFT_IN2);
     }
@@ -53,32 +56,43 @@ void left_wheel(int left){
 }    
 
 /*
- * Decides in what direction each wheel should go.
+ * Decides in what direction and speed each wheel should go.
  */
 void recalc_engine(void){
+    // Set speed according to gear. 
+    if (gear == 1){
+        duty_cycle = 100;
+    }
+    else if(gear == 2){
+        duty_cycle = 150;
+    }
+    else if(gear == 3){
+        duty_cycle = 250;
+    }
+
     if(degree == 1){
-        if(speed == 0){
+        if(direction == 0){
             right_wheel(1);
             left_wheel(-1);
         }
         else {
             right_wheel(0);
-            left_wheel(speed);
+            left_wheel(direction);
         }  
     } 
     else if (degree == -1){
-        if(speed == 0){
+        if(direction == 0){
             right_wheel(-1);
             left_wheel(1);
         }
         else {
-            right_wheel(speed);
+            right_wheel(direction);
             left_wheel(0);
         }
     }
      else{
-        right_wheel(speed);
-        left_wheel(speed);
+        right_wheel(direction);
+        left_wheel(direction);
     }
 }
 
@@ -98,7 +112,6 @@ void engine_init(void){
     PORTD |= (1<< LEFT_IN1);
     PORTB &= ~(1<< LEFT_IN2);
 
-
 	OCR0A = 0; 
     OCR0B = 0; 
     TCCR0B = (1<<CS01);
@@ -108,12 +121,12 @@ void engine_init(void){
 }
 
 /*
- * Set speed of 
+ * Set direction of 
  * 
- * new_speed: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
+ * new_direction: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
  */
-void engine_set_speed(int8_t new_speed){
-    speed = new_speed;
+void engine_set_direction(int8_t new_direction){
+    direction = new_direction;
     recalc_engine();
 }
 
@@ -128,20 +141,36 @@ void engine_turn(int8_t new_degree){
 }
 
 /*
-* Get the speed of the vheicle.  
+ * 
+ */
+int engine_set_gear(int8_t new_gear){
+    gear = new_gear; 
+}
+
+/*
+* Get the direction of the vheicle.  
 * 
-* Return: 1, if moving forward normal speed. -1 if moving backwards. 0 if standing still.
+* Return: 1, if moving forward normal direction. -1 if moving backwards. 0 if standing still.
 */
-int engine_get_speed(void){
-    return speed; 
+int engine_get_direction(void){
+    return direction; 
 }
 
 /*
  * Get the heading of the vheicle.  
  * 
- * Return: 1, if moving right normal speed. -1 if moving left. 0 if standing still.
+ * Return: 1, if moving right normal direction. -1 if moving left. 0 if standing still.
  */
 int engine_get_heading(void){
     return degree;
 }
+
+/*
+ * Retruns the gear, the speed level of the vehicle.
+ */
+int engine_get_gear(void){
+    return gear;
+}
+
+
 
