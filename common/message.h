@@ -21,7 +21,8 @@ typedef enum MessageType{
     GEAR            = (TOCAR)       |   8,
     UPDATE          = (FROMCAR)     |   9,
     PONG            = (FROMCAR)     |   10,
-    CARBUTTON       = (FROMCAR)     |   11
+    CARBUTTON       = (FROMCAR)     |   11,
+    COLLISSION      = (FROMCAR)     |   12
 } MessageType;
 
 #ifndef MESSAGE_ONLY_ENUM
