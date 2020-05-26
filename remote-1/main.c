@@ -10,7 +10,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h> 
 #include "lcd.h"
-#include "accelerator.h"
 
 
 // Global variables
@@ -233,7 +232,6 @@ void inits(void) {
     ADCInit();
     ledInit();
     btnInit();
-    accInit();
     Message_Init(4800);
     Message_Register(0xff, callback);
 }
