@@ -25,21 +25,22 @@ char *nxtStr;
 char *strings[5];
 
 void blink(void) {
-    PORTC |= (1<<PORTC5);
+    //röd
+    PORTB |= (1<<PORTB6);
     _delay_ms(10);
-    PORTC &= ~(1<<PORTC5);
+    PORTB &= ~(1<<PORTB6);
     _delay_ms(10);
 }
 
 void ledInit(void) {
-    DDRC |= (1<<PINC5) | (1<<PINC4) | (1<<PINC3);
-    PORTC &= ~(1<<PINC5) | (1<<PINC4) | (1<<PINC3);
+    DDRB |= (1<<PINB6) | (1<<PINB7);
+    PORTB &= ~(1<<PINB6) | (1<<PINB7);
 }
 
 void btnInit(void) {
 
-    DDRD &= ~(1<<PIND3) | (1<<PIND6) | (1<<PIND7);
-    PORTD |= (1<<PIND3) | (1<<PIND6) | (1<<PIND7);
+    DDRC &= ~(1<<PINC0) | (1<<PINC1) | (1<<PINC2);
+    PORTC |= (1<<PINC0) | (1<<PINC1) | (1<<PINC2);
 }
 
 /*
@@ -82,7 +83,7 @@ int readADC(int channel) {
 void timeCallback(void) {
 
     if (lastCallback) {
-        PORTC |= (1<<PINC4);
+        PORTB |= (1<<PINB7);
     }
     lastCallback = 1;
 }
@@ -108,7 +109,7 @@ void callback(Message msg) {
 
         case HEARTBEAT:
             lastCallback = 0;
-            PORTC &= ~(1<<PINC4);
+            PORTB &= ~(1<<PINB7);
 
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
@@ -120,7 +121,7 @@ void callback(Message msg) {
         case DEADMAN:
             
             if (!strcmp(msg.args[0], "1")) {
-                PORTC ^= (1<<PINC5);
+                PORTB ^= (1<<PINB6);
             }
 
             break;
@@ -152,8 +153,10 @@ void callback(Message msg) {
 
         case UPDATE:
             if (!strcmp(msg.args[0], "1")) {
+                //LAMPA
                 PORTC |= (1<<PINC3);
             } else {
+                //LAMPA
                 PORTC &= ~(1<<PINC3);
             }
             strcpy(emStateString, msg.args[0]);
@@ -238,12 +241,12 @@ void inits(void) {
 int checkDead(int dead) {
     Message msg;
 
-    if (!(PIND & (1<<7)) && (dead != 1)) {
+    if (!(PINC & (1<<2)) && (dead != 1)) {
 
         sendMessage(DEADMAN, "2", "1", msg);
         _delay_ms(50);
         return 1;
-    } else if ((PIND & (1<<7)) && (dead != 0)) {
+    } else if ((PINC & (1<<2)) && (dead != 0)) {
 
         sendMessage(DEADMAN, "2", "0", msg);
         _delay_ms(50);
@@ -309,10 +312,10 @@ int main(void) {
 
         if ((dead = checkDead(dead))) {
 
-            if (!(PIND & (1<<6)) && (ldh != 1)) {
+            if (!(PINC & (1<<1)) && (ldh != 1)) {
                 sendMessage(HONK, "2", "1", msg);
                 ldh = 1;
-            } else if ((PIND & (1<<6)) && (ldh != 0)) {
+            } else if ((PINC & (1<<1)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
             } else if (lV != vert) {
@@ -328,13 +331,13 @@ int main(void) {
             /*
              * End me 
              * */
-            if (!(PIND & (1<<6)) && (lndh != 1)) {
+            if (!(PINC & (1<<1)) && (lndh != 1)) {
                 sendMessage(HONK, "1", "1", msg);
                 lndh = 1;
-            } else if ((PIND & (1<<6)) && (lndh != 0)) {
+            } else if ((PINC & (1<<1)) && (lndh != 0)) {
                 sendMessage(HONK, "1", "0", msg);
                 lndh = 0;
-            } else if (!(PIND & (1<<3))) {
+            } else if (!(PINC & (1<<0))) {
 
                 switch (++gear) {
                     case 2:
