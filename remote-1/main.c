@@ -152,18 +152,7 @@ void callback(Message msg) {
             }
             break;
 
-        case UPDATE:
-            if (!strcmp(msg.args[0], "1")) {
-                //LAMPA
-                PORTC |= (1<<PINC3);
-            } else {
-                //LAMPA
-                PORTC &= ~(1<<PINC3);
-            }
-            strcpy(emStateString, msg.args[0]);
-            strcpy(speedString, msg.args[1]);
-            strcpy(distString, msg.args[2]);
-            break;
+
 
 
         default:
