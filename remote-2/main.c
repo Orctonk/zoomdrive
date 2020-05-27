@@ -24,11 +24,14 @@ static volatile int lastCallback = 0;
 static volatile int callStop = 0;
 static volatile char *emStateString, *distString, *speedString;
 int reset = 0;
-int strInt, prev;
+int mH = 0;
+int strInt, prev, mPrev, mStrInt;
 char *currStr;
 char *selStr;
 char *nxtStr;
-char *strings[5];
+char *mCurrStr, *mSelStr, *mNxtStr;
+char *mStrings[5];
+char *strings[6];
 
 void blink(void) {
     PORTC |= (1<<PORTC5);
@@ -91,9 +94,35 @@ int readADC(int channel) {
     return ADCW;
 }
 
+void MelmenuRight(void) {
+    _delay_ms(10);
+    if (!(++mStrInt > 4)) {
+        mCurrStr = mNxtStr;
+        mNxtStr = mStrings[mStrInt];
+    } else {
+        mStrInt = 0;
+        mCurrStr = mNxtStr;
+        mNxtStr = mStrings[mStrInt];
+    }
+}
+
+void MelmenuLeft(void) {
+
+    _delay_ms(10);
+    if (!(--mStrInt < 0)) {
+        mNxtStr = mCurrStr;
+        mCurrStr = mStrings[mStrInt];
+    } else {
+        mStrInt = 4;
+        mNxtStr = mCurrStr;
+        mCurrStr = mStrings[mStrInt];
+    }
+
+}
+
 void menuRight(void) {
     _delay_ms(10);
-    if (!(++strInt > 4)) {
+    if (!(++strInt > 5)) {
         currStr = nxtStr;
         nxtStr = strings[strInt];
     } else {
@@ -181,16 +210,26 @@ void callback(Message msg) {
 
             break;
 
-        case UPDATE:
+        case UPDATE_EM:
+
             if (!strcmp(msg.args[0], "1")) {
                 PORTC |= (1<<PINC3);
             } else {
                 PORTC &= ~(1<<PINC3);
             }
             strcpy(emStateString, msg.args[0]);
-            strcpy(speedString, msg.args[1]);
-            strcpy(distString, msg.args[2]);
             break;
+
+        //case UPDATE:
+        //    if (!strcmp(msg.args[0], "1")) {
+        //        PORTC |= (1<<PINC3);
+        //    } else {
+        //        PORTC &= ~(1<<PINC3);
+        //    }
+        //    strcpy(emStateString, msg.args[0]);
+        //    strcpy(speedString, msg.args[1]);
+        //    strcpy(distString, msg.args[2]);
+        //    break;
 
 
         default:
@@ -224,7 +263,7 @@ void horDrive(int dir) {
     }
 }
 
-void writeToScreen(int dead, int gear) {
+void writeRegMenu(int dead, int gear) {
     writeString(currStr);
     writeString("  G:");
     writeData(gear+48);
@@ -309,18 +348,113 @@ int cheatCodes(int cState) {
     return 0;
 }
 
+int getVert() {
+
+
+    int vertAdc = readADC(0);
+
+    if (vertAdc >= 800) {
+        return 1;
+    } else if (vertAdc <= 400) {
+        return -1;
+    } else {
+        return 0;
+    }
+
+}
+
+int getHor() {
+
+    int horAdc = readADC(1);
+
+    if (horAdc >= 800) {
+        return 1;
+    } else if (horAdc <= 400) {
+        return -1;
+    } else {
+        return 0;
+    }
+
+}
+
+void writeMelMenu() {
+
+    writeString(mCurrStr);
+    writeString(" ");
+    writeString(mNxtStr);
+    moveCursor(0b10010000);
+    writeString("Selected: ");
+    writeString(mSelStr);
+    moveCursor(0b10100000);
+    writeData(mStrInt + 48);
+}
+
+void melodiesMenu() {
+
+    while(1) {
+        clearDisplay();
+        writeMelMenu();
+
+        mH = getHor();
+
+        if (mH == -1) {
+
+            MelmenuRight();
+            if (mPrev) {
+                MelmenuRight();
+            }
+            mPrev = 0;
+
+        } else if (mH == 1) {
+
+            MelmenuLeft();
+            if (!mPrev) {
+                MelmenuLeft();
+            }
+            mPrev = 1;
+        } 
+
+        if (!(PINC & (1<<2))) {
+            mSelStr = mCurrStr;
+            if (!strcmp(mSelStr, "EXIT")) {
+                return;
+            } else {
+                char buff[10];
+                Message msg;
+                sendMessage(HONK, "2", itoa(mStrInt, buff, 10), msg);
+            }
+        }
+
+        _delay_ms(50);
+
+    }
+
+}
+
 /*
    The main loop that controlls the program flow. 
    */
 int main(void) {
 
     strInt = prev = -1;
+    mStrInt = 0;
+    mPrev = 1;
+
+    mStrings[0] = "Glass";
+    mStrings[1] = "USSR";
+    mStrings[2] = "HG";
+    mStrings[3] = "Twinkle";
+    mStrings[4] = "EXIT";
+
+    mSelStr = mCurrStr = mStrings[0];
+    nxtStr = mStrings[1];
 
     strings[0] = "st1";
     strings[1] = "st2";
     strings[2] = "st2";
     strings[3] = "st3";
-    strings[4] = "CC";
+    strings[4] = "Melodies";
+    strings[5] = "CC";
 
     selStr = currStr = strings[0];
     nxtStr = strings[1];
@@ -338,6 +472,7 @@ int main(void) {
     inits();
     sei();
 
+    
 
     // Loop as long as there is power in the MCU.
     while(1) {
@@ -347,25 +482,8 @@ int main(void) {
 
         clearDisplay();
 
-        vertAdc = readADC(0);
-        horAdc = readADC(1);
-
-
-        if (vertAdc >= 800) {
-            vert = 1;
-        } else if (vertAdc <= 400) {
-            vert = -1;
-        } else {
-            vert = 0;
-        }
-
-        if (horAdc >= 800) {
-            hor = 1;
-        } else if (horAdc <= 400) {
-            hor = -1;
-        } else {
-            hor = 0;
-        }
+        vert = getVert();
+        hor = getHor();
 
         if ((dead = checkDead(dead))) {
 
@@ -375,7 +493,7 @@ int main(void) {
             } else if ((PIND & (1<<6)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
-            } t 
+            }  
 
             if (lV != vert) {
                 lV = vert;
@@ -431,6 +549,10 @@ int main(void) {
 
                 if (!strcmp(currStr, "CC")) {
                     cState = cheatCodes(cState);
+                } else if (!strcmp(currStr, "Melodies")) {
+                    _delay_ms(30);
+                    melodiesMenu();
+
                 } else {
                     selStr = currStr;
                     sendMessage(CSTSTRING, selStr, NULL, msg);
@@ -438,7 +560,7 @@ int main(void) {
             }
         }
 
-        writeToScreen(dead, gear);
+        writeRegMenu(dead, gear);
 
         _delay_ms(50);
     }
