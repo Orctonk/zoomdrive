@@ -472,7 +472,6 @@ int main(void) {
     inits();
     sei();
 
-    
 
     // Loop as long as there is power in the MCU.
     while(1) {
