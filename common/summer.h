@@ -17,10 +17,11 @@
 #include <avr/io.h>
 
 // Pin definitions for the summer
-#define SUMMER_DDR      DDRC
+#define SUMMER_DDR      DDRB
 #define SUMMER_PIN      PIN1
 
 #ifdef SUMMER_USE_SW
+#define SUMMER_DDR      DDRC
 #define SW_SUMMER_PORT  PORTC
 #define SUMMER_PIN      PIN4
 #endif
