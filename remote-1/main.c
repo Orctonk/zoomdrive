@@ -83,7 +83,7 @@ int readADC(int channel) {
 void timeCallback(void) {
 
     if (lastCallback) {
-        PORTB |= (1<<PINB7);
+        PORTB |= (1<<PIN);
     }
     lastCallback = 1;
 }
@@ -103,12 +103,13 @@ void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
 }
 
 void callback(Message msg) {
-
+    blink();
     cli();
     switch(msg.type) {
 
         case HEARTBEAT:
             lastCallback = 0;
+            blink();
             PORTB &= ~(1<<PINB7);
 
             if (!strcmp(msg.args[0], "0")) {
