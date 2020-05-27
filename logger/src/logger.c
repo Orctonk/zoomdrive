@@ -17,6 +17,7 @@ typedef struct SystemStatus {
 	char carDistBack[6];
     uint8_t carGear;
     bool embreaked;
+	uint32_t car_lastupdate;
     uint32_t remote1_lasthb;
     uint32_t remote2_lasthb;
 } SystemStatus;
@@ -60,26 +61,30 @@ void Logger_UpdateDisplay(void) {
             u8g_DrawStr(&u8g,102,20, "R2:");
             u8g_DrawStr(&u8g,120,20,t - status.remote2_lasthb > 3000 ? "N" : "Y");
             u8g_DrawBitmapP(&u8g,26,32,8,28,carimage);
-			if(status.carSpeed < 0){
-				u8g_DrawBitmapP(&u8g,26,40,1,11,backarrow);
-				if(status.carHeading == 1)
-					u8g_DrawBitmapP(&u8g,27,55,1,4,turnarrowright);
-				else if(status.carHeading == -1)
-					u8g_DrawBitmapP(&u8g,27,33,1,4,turnarrowleft);
+			if(t - status.car_lastupdate >= 5000){
+				u8g_DrawBitmapP(&u8g,29,32,8,28,cardccross);
+			} else {
+				if(status.carSpeed < 0){
+					u8g_DrawBitmapP(&u8g,26,40,1,11,backarrow);
+					if(status.carHeading == 1)
+						u8g_DrawBitmapP(&u8g,27,55,1,4,turnarrowright);
+					else if(status.carHeading == -1)
+						u8g_DrawBitmapP(&u8g,27,33,1,4,turnarrowleft);
+				}
+				else if(status.carSpeed > 0){
+					for(uint8_t i = 0; i < status.carGear; i++)
+				//	for(uint8_t i = 0; i < 3; i++)
+						u8g_DrawBitmapP(&u8g,84 + 5*i,40,1,11,forwardarrow);
+					if(status.carHeading == 1)
+						u8g_DrawBitmapP(&u8g,83,55,1,4,turnarrowright);
+					else if(status.carHeading == -1)
+						u8g_DrawBitmapP(&u8g,83,33,1,4,turnarrowleft);
+				}
+				u8g_DrawBitmapP(&u8g,0,40,3,11,backdistarrow);
+				u8g_DrawStr(&u8g,0,60, status.carDistBack);
+				u8g_DrawBitmapP(&u8g,104,40,3,11,frontdistarrow);
+				u8g_DrawStr(&u8g,104,60, status.carDistFront);
 			}
-			else if(status.carSpeed > 0){
-				for(uint8_t i = 0; i < status.carGear; i++)
-			//	for(uint8_t i = 0; i < 3; i++)
-					u8g_DrawBitmapP(&u8g,84 + 5*i,40,1,11,forwardarrow);
-				if(status.carHeading == 1)
-					u8g_DrawBitmapP(&u8g,83,55,1,4,turnarrowright);
-				else if(status.carHeading == -1)
-					u8g_DrawBitmapP(&u8g,83,33,1,4,turnarrowleft);
-			}
-			u8g_DrawBitmapP(&u8g,0,40,3,11,backdistarrow);
-			u8g_DrawStr(&u8g,0,60, status.carDistBack);
-			u8g_DrawBitmapP(&u8g,104,40,3,11,frontdistarrow);
-			u8g_DrawStr(&u8g,104,60, status.carDistFront);
 		}
 		else{
 			for(uint8_t i = 0; i < 6; i++){
@@ -91,6 +96,9 @@ void Logger_UpdateDisplay(void) {
 
 void messageCallback(Message msg) {
 	msgcat(logs[nextlog], msg);
+
+	if(msg.type & FROMCAR)
+		status.car_lastupdate = Time_GetMillis();
 
     switch(msg.type){
     case UPDATE_EM:
