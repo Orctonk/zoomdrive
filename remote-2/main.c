@@ -170,7 +170,6 @@ void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
 
 void callback(Message msg) {
 
-    cli();
     switch(msg.type) {
 
         case HEARTBEAT:
@@ -235,7 +234,6 @@ void callback(Message msg) {
         default:
             break;
     }
-    sei();
 }
 
 
