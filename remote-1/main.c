@@ -38,8 +38,8 @@ void ledInit(void) {
 
 void btnInit(void) {
 
-    DDRC &= ~(1<<PINC0) | (1<<PINC1) | (1<<PINC2);
-    PORTC |= (1<<PINC0) | (1<<PINC1) | (1<<PINC2);
+    DDRD &= ~(1<<PIND2) | (1<<PIND3) | (1<<PIND4);
+    PORTD |= (1<<PIND2) | (1<<PIND3) | (1<<PIND4);
 }
 
 /*
@@ -103,7 +103,6 @@ void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
 
 void callback(Message msg) {
 
-    blink();
     switch(msg.type) {
 
         case HEARTBEAT:
@@ -226,12 +225,12 @@ void inits(void) {
 int checkDead(int dead) {
     Message msg;
 
-    if (!(PINC & (1<<2)) && (dead != 1)) {
+    if (!(PIND & (1<<2)) && (dead != 1)) {
 
         sendMessage(DEADMAN, "2", "1", msg);
         _delay_ms(50);
         return 1;
-    } else if ((PINC & (1<<2)) && (dead != 0)) {
+    } else if ((PIND & (1<<2)) && (dead != 0)) {
 
         sendMessage(DEADMAN, "2", "0", msg);
         _delay_ms(50);
@@ -270,28 +269,29 @@ int main(void) {
 
         clearDisplay();
 
-        vertAdc = readADC(0);
+        vertAdc = readADC(2);
         horAdc = readADC(1);
 
 
 
-        if (vertAdc >= 530) {
+
+        if (vertAdc <= 480) {
             vert = 1;
-        } else if (vertAdc <= 470) {
+        } else if (vertAdc >= 580) {
             vert = -1;
         } else {
             vert = 0;
         }
-
+        
 
         // Kanke vänd på dessa???
         /*
          * Kanske sova.....
          *
          * */
-        if (horAdc >= 530) {
+        if (horAdc <= 480) {
             hor = 1;
-        } else if (horAdc <= 470) {
+        } else if (horAdc >= 580) {
             hor = -1;
         } else {
             hor = 0;
@@ -299,10 +299,10 @@ int main(void) {
 
         if ((dead = checkDead(dead))) {
 
-            if (!(PINC & (1<<1)) && (ldh != 1)) {
+            if (!(PIND & (1<<3)) && (ldh != 1)) {
                 sendMessage(HONK, "2", "1", msg);
                 ldh = 1;
-            } else if ((PINC & (1<<1)) && (ldh != 0)) {
+            } else if ((PIND & (1<<3)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
             } else if (lV != vert) {
@@ -318,13 +318,13 @@ int main(void) {
             /*
              * End me 
              * */
-            if (!(PINC & (1<<1)) && (lndh != 1)) {
+            if (!(PIND & (1<<3)) && (lndh != 1)) {
                 sendMessage(HONK, "1", "1", msg);
                 lndh = 1;
-            } else if ((PINC & (1<<1)) && (lndh != 0)) {
+            } else if ((PIND & (1<<3)) && (lndh != 0)) {
                 sendMessage(HONK, "1", "0", msg);
                 lndh = 0;
-            } else if (!(PINC & (1<<0))) {
+            } else if (!(PIND & (1<<4))) {
 
                 switch (++gear) {
                     case 2:
