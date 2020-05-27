@@ -1,5 +1,5 @@
 # Change these to reflect your project
-TARGET ?= remote-1
+TARGET ?= main
 PORT ?= /dev/ttyACM0
 SPORT ?= /dev/ttyUSB0
 
@@ -13,8 +13,8 @@ MCU = atmega328p
 AVRDUDE_DEVICE = m328p
 
 # Define project structure
-OUT_DIR  ?= ./build/fjarr1
-SRC_DIRS ?= ./ ../common/
+OUT_DIR  ?= ./build/remote-2
+SRC_DIRS ?= . ../common/
 INC_DIRS ?= ./ ../common/
 
 # Toolchain
@@ -33,10 +33,10 @@ CWARN = all strict-prototypes
 OPTIMIZE = -Os
 CFLAGS = -mcall-prologues -mmcu=$(MCU)
 LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os
-DEFINES = F_CPU=1000000UL DRV_MMC=0
+DEFINES = F_CPU=1000000UL
 
 # From this point nothing should be changed
-ifeq ($(DEBUG),true)
+ifeq ($(DEBUG) , true)
 	CFLAGS += -g
 	DEFINES += DEBUG
 endif

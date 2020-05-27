@@ -34,7 +34,7 @@ def cleanup():
 try:
     print("Connecting... {}".format(serialdev))
     #connect to serial port
-    ser = serial.Serial(serialdev,9600)
+    ser = serial.Serial(serialdev,4800)
 except:
     print("Failed to connect serial")
     #unable to continue with no serial input
