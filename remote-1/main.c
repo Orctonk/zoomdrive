@@ -83,7 +83,7 @@ int readADC(int channel) {
 void timeCallback(void) {
 
     if (lastCallback) {
-        PORTB |= (1<<PIN);
+        PORTB |= (1<<PIN7);
     }
     lastCallback = 1;
 }
