@@ -8,14 +8,24 @@
  * 
  */
 
+#include <avr/interrupt.h>
+
 #include "engine.h"
 
-int duty_cycle = 200; 
-int back_duty_cycle = 200;
+int duty_cycle = 100; 
+int back_duty_cycle = 100;
 int direction = 0; 
 int degree = 0;
 int gear = 1;
- 
+static volatile uint32_t right_en_ticks = 0;
+static volatile uint32_t left_en_ticks = 0;
+
+ISR(INT0_vect){
+    right_en_ticks ++;
+}
+ISR(INT1_vect){
+    left_en_ticks ++;
+}
 
 /*
  * Set direction for right wheel
@@ -101,6 +111,11 @@ void recalc_engine(void){
  */
 void engine_init(void){
     PWM_DDR |= (1<< RIGHT_PWM_PIN)|(1<<LEFT_PWM_PIN);
+    EN_DDR &= ~(1<< RIGHT_EN_PIN)| (1<<LEFT_EN_PIN);
+    //EN_PORT |= (1<< RIGHT_EN_PIN)| (1<<LEFT_EN_PIN);
+
+    EICRA = (1<<ISC11)|(1<<ISC10)|(1<<ISC01)|(1<<ISC00);
+    EIMSK = (1<<INT1)|(1<<INT0);
 
     DDRB |= (1<< RIGHT_IN1);
     DDRB |= (1<< RIGHT_IN2);
@@ -118,6 +133,8 @@ void engine_init(void){
 	TCCR0A = (1<<WGM01)|(1<<WGM00)|(1<<COM0A1)|(1<<COM0B1);
 
     recalc_engine();
+
+
 }
 
 /*
@@ -141,9 +158,9 @@ void engine_turn(int8_t new_degree){
 }
 
 /*
- * 
+ * Set speed 
  */
-int engine_set_gear(int8_t new_gear){
+void engine_set_gear(int8_t new_gear){
     gear = new_gear; 
 }
 
@@ -172,5 +189,12 @@ int engine_get_gear(void){
     return gear;
 }
 
+/*
+ * Claculate and return in meters the distance the vehicle has gone since start.
+ */
+float engine_get_distance(){
+    
+    return ((right_en_ticks + left_en_ticks )/102.5*0.22); 
+}
 
 

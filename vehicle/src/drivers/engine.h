@@ -15,6 +15,7 @@
 
 #define PWM_DDR DDRD
 #define EN_DDR DDRD
+#define EN_PORT PORTD
 //Right wheel
 #define RIGHT_PWM_PIN PIN6
 #define RIGHT_EN_PIN PIN2
@@ -46,9 +47,9 @@ void engine_set_direction(int8_t new_direction);
 void engine_turn(int8_t new_degree);
 
 /*
- * 
+ * Set speed
  */
-int engine_set_gear(int8_t new_gear);
+void engine_set_gear(int8_t new_gear);
 
 /*
  * Get the direction of the vheicle.  
@@ -68,5 +69,10 @@ int engine_get_heading(void);
  * Retruns the gear, the speed level of the vehicle.
  */
 int engine_get_gear(void); 
+
+/*
+ * Claculate and return in meters the distance the vehicle has gone since start.
+ */
+float engine_get_distance();
 
 #endif 
