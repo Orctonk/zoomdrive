@@ -45,12 +45,12 @@ bool button_pressed(void);
 /*
  * Returns true if a collision is detected on the right side
  */
-bool right_collision();
+bool right_collision(void);
 
 /*
  * Returns true if a collision is detected on the left side
  */
-bool left_collision();
+bool left_collision(void);
 
 
 /*

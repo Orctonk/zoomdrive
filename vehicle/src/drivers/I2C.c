@@ -21,6 +21,13 @@
 void I2C_init(void){
     i2c_init();
 
+	if( i2c_start((EXTENDER_SLAVE_ADRESS)| I2C_WRITE) !=0){
+		i2c_stop();
+		return 0; 
+	}
+	i2c_write(0xFF);
+	i2c_stop();
+
 }
 
 /*
@@ -117,7 +124,7 @@ bool button_pressed(void){
 /*
  * Returns true if a collision is detected on the right side
  */
-bool right_collision(){
+bool right_collision(void){
 	if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
 		i2c_stop();
 		return 1;
@@ -139,7 +146,7 @@ bool right_collision(){
 /*
  * Returns true if a collision is detected on the left side
  */
-bool left_collision(){
+bool left_collision(void){
 	if( i2c_start((EXTENDER_SLAVE_ADRESS)|I2C_READ ) != 0){
 		i2c_stop();
 		return 1;
