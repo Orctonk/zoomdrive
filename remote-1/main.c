@@ -159,11 +159,9 @@ void callback(Message msg) {
             //Skriv till sträng
             if (!strcmp(msg.args[0], "1")) {
                 star = 1;
-                return star;
                 //skriv inte
             } else {
                 star = 0;
-                return star;
             }
             break;
 
