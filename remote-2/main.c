@@ -34,6 +34,7 @@ char *mCurrStr, *mSelStr, *mNxtStr;
 char *mStrings[5];
 char *strings[10];
 
+// Blinks the LED on PC5;
 void blink(void) {
     PORTC |= (1<<PORTC5);
     _delay_ms(10);
@@ -41,17 +42,47 @@ void blink(void) {
     _delay_ms(10);
 }
 
+/*
+ * Initializes the LEDs.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * void
+ *
+ * */
 void ledInit(void) {
     DDRC |= (1<<PINC5) | (1<<PINC4) | (1<<PINC3);
     PORTC &= ~(1<<PINC5) | (1<<PINC4) | (1<<PINC3);
 }
 
+/*
+ * Initializes the buttons.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * void
+ *
+ * */
 void btnInit(void) {
 
     DDRD &= ~(1<<PIND3) | (1<<PIND6) | (1<<PIND7);
     PORTD |= (1<<PIND3) | (1<<PIND6) | (1<<PIND7);
 }
 
+/*
+ * Initializes the joystick.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * void
+ *
+ * */
 void joyStickInit(void) {
 
     DDRC &= ~(1<<PINC2);
@@ -95,6 +126,16 @@ int readADC(int channel) {
     return ADCW;
 }
 
+/*
+ * Shifts the melodies menu one step to the right.
+ *
+ *return:
+ *void
+ *
+ * input: 
+ * void
+ *
+ * */
 void MelmenuRight(void) {
     _delay_ms(10);
     if (!(++mStrInt > 4)) {
@@ -107,6 +148,16 @@ void MelmenuRight(void) {
     }
 }
 
+/*
+ * Shifts the melodies menu one step to the left.
+ *
+ *return:
+ *void
+ *
+ * input: 
+ * void
+ *
+ * */
 void MelmenuLeft(void) {
 
     _delay_ms(10);
@@ -121,6 +172,16 @@ void MelmenuLeft(void) {
 
 }
 
+/*
+ * Shifts the menu one step to the right.
+ *
+ *return:
+ *void
+ *
+ * input: 
+ * void
+ *
+ * */
 void menuRight(void) {
     _delay_ms(10);
     if (!(++strInt > 9)) {
@@ -133,6 +194,16 @@ void menuRight(void) {
     }
 }
 
+/*
+ * Shifts the menu one step to the left.
+ *
+ *return:
+ *void
+ *
+ * input: 
+ * void
+ *
+ * */
 void menuLeft(void) {
 
     _delay_ms(10);
@@ -147,6 +218,15 @@ void menuLeft(void) {
 
 }
 
+/*
+ * A function that checks if if the hearbeats have stopped based on a set timer.
+ * If they have it toggles an LED.
+ * return:
+ * void
+ *
+ * input:
+ * void
+ * */
 void timeCallback(void) {
 
     if (lastCallback) {
@@ -155,6 +235,19 @@ void timeCallback(void) {
     lastCallback = 1;
 }
 
+/*
+ * A simple helperfunction for sending a message over MQTT.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * @topic - the topic of the message (ENUMS).
+ * @payLoad1 - the first argument in the message.
+ * @payLoad2 - the second argument in the message.
+ * @msg - the message to send. 
+ *
+ * */
 void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
     int argc =  1;
     msg.type = topic;
@@ -169,14 +262,27 @@ void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
     Message_Send(msg, argc);
 }
 
+/*
+ * A function that handles the messages that comes from MQTT over UART form the
+ * ESP32. 
+ *
+ * return:
+ * void
+ *
+ * input:
+ * @msg - the message that arrived. 
+ * */
 void callback(Message msg) {
 
     switch(msg.type) {
 
         case HEARTBEAT:
+
+            //reset the lastCallback and turn off the LED.
             lastCallback = 0;
             PORTC &= ~(1<<PINC4);
 
+            // If the heartbeat comes from logger reply.
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
                 sendMessage(HEARTBEAT, "2", NULL, msg);
@@ -184,11 +290,13 @@ void callback(Message msg) {
             }
             break;
 
+        // Syncs gears between the remotes.
         case GEAR:
             gear = atoi(msg.args[0]);
             break;
 
         case HONK:
+            // Check if the honk is directed at this remote.
             if(!strcmp(msg.args[0], "1")) {
                 if (!strcmp(msg.args[1], "1")) {
                     summer_start();
@@ -200,9 +308,6 @@ void callback(Message msg) {
             break;
 
         case CARBUTTON:
-
-            // Safer - controlls correct input
-            
             if (!strcmp(msg.args[0], "1")) {
                 cBtn = 1;
                 summer_start();
@@ -225,7 +330,6 @@ void callback(Message msg) {
 
 
         case INFO:
-            blink();
             strcpy(infoStr, msg.args[0]);
 
             break;
@@ -235,7 +339,16 @@ void callback(Message msg) {
     }
 }
 
-
+/*
+ * Sends a message to the car with the vertical direction it should drive in.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * @dir - 1 = forward, 0 = stop, -1 = backward.
+ *
+ * */
 void vertDrive(int dir) {
 
     Message msg;
@@ -248,6 +361,16 @@ void vertDrive(int dir) {
     }
 }
 
+/*
+ * Sends a message to the car with the horizontal direction it should drive in.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * @dir - 1 = right, 0 = stop, -1 = left.
+ *
+ * */
 void horDrive(int dir) {
 
     Message msg;
@@ -260,6 +383,18 @@ void horDrive(int dir) {
     }
 }
 
+/*
+ * Writes the regular menu to the LCD.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * @dead - 1 - deadmangrip ative, 0 - not active.
+ * @gear - which gear the car is in. 
+ *
+ *
+ * */
 void writeRegMenu(int dead, int gear) {
     writeString(currStr);
     writeString("  G:");
@@ -280,7 +415,15 @@ void writeRegMenu(int dead, int gear) {
     
 }
 
-
+/*
+ * Initializes all the parts.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * void
+ * */
 void inits(void) {
 
     // Initialize all the necessary parts.
@@ -296,9 +439,19 @@ void inits(void) {
     Message_Register(0xff, callback);
 }
 
+/*
+ * Checks if the DeadMan button is pressed and returns the answer.
+ *
+ * return:
+ * the state of the button.
+ *
+ * input:
+ * @dead - the previous state of the button. 
+ * */
 int checkDead(int dead) {
     Message msg;
 
+    // Only sends a message to MQTT when the button is in a new state. 
     if (!(PIND & (1<<7)) && (dead != 1)) {
 
         sendMessage(DEADMAN, "2", "1", msg);
@@ -314,6 +467,17 @@ int checkDead(int dead) {
     return dead;
 }
 
+/*
+ * Runs the cheatcodes part of the system
+ *
+ * return:
+ * 0
+ *
+ * input:
+ * @cState - the current state of the cheatsystem, in the current state
+ * always zero.
+ *
+ * */
 int cheatCodes(int cState) {
     while (1) {
         clearDisplay();
@@ -339,8 +503,19 @@ int cheatCodes(int cState) {
     return 0;
 }
 
-int getVert() {
-
+/*
+ * Gets the vertical position of the joystick and returns the direction that
+ * if faces.
+ *
+ * return:
+ * 1 - pointing forward
+ * 0 - pointing upward
+ * -1 - pointing backwards
+ *
+ * input:
+ * void
+ * */
+int getVert(void) {
 
     int vertAdc = readADC(0);
 
@@ -354,7 +529,19 @@ int getVert() {
 
 }
 
-int getHor() {
+/*
+ * Gets the horizontal position of the joystick and returns the direction that
+ * if faces.
+ *
+ * return:
+ * 1 - pointing right
+ * 0 - pointing upward
+ * -1 - pointing left
+ *
+ * input:
+ * void
+ * */
+int getHor(void) {
 
     int horAdc = readADC(1);
 
@@ -368,7 +555,17 @@ int getHor() {
 
 }
 
-void writeMelMenu() {
+/*
+ * Writes the menu for selecting the melodies to send to the car.
+ *
+ * return:
+ * void
+ *
+ * input:
+ * void
+ *
+ * */
+void writeMelMenu(void) {
 
     writeString(mCurrStr);
     writeString(" ");
@@ -380,6 +577,16 @@ void writeMelMenu() {
     writeData(mStrInt + 48);
 }
 
+/*
+ * Handles the menu system for the selecting the melodies.
+ *
+ * return:
+ * void 
+ *
+ * input:
+ * void
+ *
+ * */
 void melodiesMenu() {
 
     while(1) {
@@ -422,7 +629,17 @@ void melodiesMenu() {
 
 }
 
-int checkCMD() {
+/*
+ * Checks if the selected string corresponds to a manouver.
+ *
+ * return:
+ * 1 - the string corresponds to a manouver
+ * 0 - it does not
+ *
+ * input:
+ * void
+ * */
+int checkCMD(void) {
     //Message msg;
     //if (!strcmp(selStr, strings[6])) {
     //    sendMessage(CMD, "0", NULL, msg);
@@ -494,8 +711,11 @@ int main(void) {
 
         vert = getVert();
         hor = getHor();
+
+        
         if ((dead = checkDead(dead))) {
 
+            // check if the honk button is pressed
             if (!(PIND & (1<<6)) && (ldh != 1)) {
                 sendMessage(HONK, "2", "1", msg);
                 ldh = 1;
@@ -504,6 +724,8 @@ int main(void) {
                 ldh = 0;
             }  
 
+            // if the direction of the stick is changed send a new direction
+            // message to MQTT
             if (lV != vert) {
                 lV = vert;
                 vertDrive(vert);
@@ -516,6 +738,7 @@ int main(void) {
 
         } else {
 
+            // Handle the menu
             if (hor == -1) {
 
                 menuRight();
@@ -533,6 +756,7 @@ int main(void) {
                 prev = 1;
             } 
 
+            // check if the honk button is pressed
             if (!(PIND & (1<<6)) && (lndh != 1)) {
                 sendMessage(HONK, "0", "1", msg);
                 lndh = 1;
@@ -556,6 +780,7 @@ int main(void) {
 
             } else if (!(PINC & (1<<2))) {
 
+                // Check which of the strings are selected the stick is pressed. 
                 if (!strcmp(currStr, "CC")) {
                     cState = cheatCodes(cState);
                 } else if (!strcmp(currStr, "Melodies")) {
