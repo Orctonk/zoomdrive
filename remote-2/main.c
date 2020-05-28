@@ -22,7 +22,6 @@
 static volatile int cBtn = 0;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
-static volatile char *emStateString, *distString, *speedString;
 int reset = 0;
 int mH = 0;
 int strInt, prev, mPrev, mStrInt;
@@ -178,7 +177,7 @@ void callback(Message msg) {
 
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
-                sendMessage(HEARTBEAT, "1", NULL, msg);
+                sendMessage(HEARTBEAT, "2", NULL, msg);
                 _delay_ms(50);
             }
             break;
@@ -216,19 +215,8 @@ void callback(Message msg) {
             } else {
                 PORTC &= ~(1<<PINC3);
             }
-            strcpy(emStateString, msg.args[0]);
             break;
 
-        //case UPDATE:
-        //    if (!strcmp(msg.args[0], "1")) {
-        //        PORTC |= (1<<PINC3);
-        //    } else {
-        //        PORTC &= ~(1<<PINC3);
-        //    }
-        //    strcpy(emStateString, msg.args[0]);
-        //    strcpy(speedString, msg.args[1]);
-        //    strcpy(distString, msg.args[2]);
-        //    break;
 
 
         default:
@@ -278,13 +266,6 @@ void writeRegMenu(int dead, int gear) {
 
     moveCursor(0b10100000);
     
-
-    writeString("EB:");
-    writeString(emStateString);
-    writeString(" V:");
-    writeString(speedString);
-    writeString(" D:");
-    writeString(distString);
 }
 
 
@@ -456,9 +437,6 @@ int main(void) {
 
     selStr = currStr = strings[0];
     nxtStr = strings[1];
-    emStateString = "E";
-    speedString = "S";
-    distString = "D";
 
 
     int cState, dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor, gear;
@@ -481,7 +459,6 @@ int main(void) {
 
         vert = getVert();
         hor = getHor();
-
         if ((dead = checkDead(dead))) {
 
             if (!(PIND & (1<<6)) && (ldh != 1)) {

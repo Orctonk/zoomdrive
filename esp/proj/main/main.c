@@ -32,8 +32,8 @@ esp_mqtt_client_handle_t client;
    If you'd rather not, just change the below entries to strings with
    the config you want - ie #define EXAMPLE_WIFI_SSID "mywifissid"
 */
-#define EXAMPLE_ESP_WIFI_SSID      "Cheese and Jamone"
-#define EXAMPLE_ESP_WIFI_PASS      "Pojke.fuckOff"
+#define EXAMPLE_ESP_WIFI_SSID      "Atsiken"
+#define EXAMPLE_ESP_WIFI_PASS      "Kuratorvagen1107"
 #define EXAMPLE_ESP_MAXIMUM_RETRY  5
 
 /* FreeRTOS event group to signal when we are connected*/

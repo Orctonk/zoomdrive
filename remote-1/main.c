@@ -111,7 +111,7 @@ void callback(Message msg) {
 
             if (!strcmp(msg.args[0], "0")) {
                 Message msg;
-                sendMessage(HEARTBEAT, "2", NULL, msg);
+                sendMessage(HEARTBEAT, "1", NULL, msg);
                 _delay_ms(50);
             }
             break;
@@ -119,7 +119,7 @@ void callback(Message msg) {
         case DEADMAN:
             
             if (!strcmp(msg.args[0], "1")) {
-                PORTC ^= (1<<PINC2);
+                PORTB ^= (1<<PINB6);
             }
 
             break;
