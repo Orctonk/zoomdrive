@@ -19,7 +19,7 @@ static volatile int lastCallback = 0;
 static volatile int callStop = 0;
 static volatile char *cString;
 int reset = 0;
-int strInt, prev;
+int strInt, prev, star;
 char *currStr;
 char *selStr;
 char *nxtStr;
@@ -154,6 +154,18 @@ void callback(Message msg) {
             }
             break;
 
+        case UPDATE_EM:
+
+            //Skriv till sträng
+            if (!strcmp(msg.args[0], "1")) {
+                star = 1;
+                return star;
+                //skriv inte
+            } else {
+                star = 0;
+                return star;
+            }
+            break;
 
         default:
             break;
@@ -185,7 +197,7 @@ void horDrive(int dir) {
     }
 }
 
-void writeToScreen(int dead, int gear) {
+void writeToScreen(int dead, int gear, int star) {
     writeString("G:");
     writeData(gear+48);
 
@@ -196,6 +208,9 @@ void writeToScreen(int dead, int gear) {
     }
     writeData(cBtn + 48);
 
+    if (star){
+        writeData('*');
+    }
     moveCursor(0b10010000);
 
     writeString("INFO: ");
@@ -334,7 +349,7 @@ int main(void) {
             } 
         }
 
-        writeToScreen(dead, gear);
+        writeToScreen(dead, gear, star);
 
         _delay_ms(50);
     }
