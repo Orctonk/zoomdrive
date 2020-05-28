@@ -14,9 +14,10 @@
 
 // Global variables
 static volatile int cBtn = 0;
+static volatile int gear = 1;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
-static volatile char *emStateString, *distString, *speedString, *cString;
+static volatile char *cString;
 int reset = 0;
 int strInt, prev;
 char *currStr;
@@ -118,10 +119,14 @@ void callback(Message msg) {
 
         case DEADMAN:
             
-            if (!strcmp(msg.args[0], "1")) {
+            if (!strcmp(msg.args[0], "2")) {
                 PORTB ^= (1<<PINB6);
             }
 
+            break;
+
+        case GEAR:
+            gear = atoi(msg.args[0]);
             break;
 
         case HONK:
@@ -198,13 +203,6 @@ void writeToScreen(int dead, int gear) {
 
     moveCursor(0b10100000);
 
-    writeString("EB:");
-    writeString(emStateString);
-    writeString(" V:");
-    writeString(speedString);
-    writeString(" D:");
-    writeString(distString);
-
 }
 
 
@@ -227,12 +225,12 @@ int checkDead(int dead) {
 
     if (!(PIND & (1<<2)) && (dead != 1)) {
 
-        sendMessage(DEADMAN, "2", "1", msg);
+        sendMessage(DEADMAN, "1", "1", msg);
         _delay_ms(50);
         return 1;
     } else if ((PIND & (1<<2)) && (dead != 0)) {
 
-        sendMessage(DEADMAN, "2", "0", msg);
+        sendMessage(DEADMAN, "1", "0", msg);
         _delay_ms(50);
         return 0;
     }
@@ -246,13 +244,9 @@ int checkDead(int dead) {
 int main(void) {
 
     cString = "NaN";
-    emStateString = "E";
-    speedString = "S";
-    distString = "D";
 
-    int dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor, gear;
+    int dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor;
     dead = vertAdc = horAdc = lH = lV = ldh = lndh = vert = hor = 0;
-    gear = 1;
 
     Message msg;
 
@@ -271,8 +265,6 @@ int main(void) {
 
         vertAdc = readADC(2);
         horAdc = readADC(1);
-
-
 
 
         if (vertAdc <= 480) {

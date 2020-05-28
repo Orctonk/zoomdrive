@@ -20,6 +20,7 @@
 
 // Global variables
 static volatile int cBtn = 0;
+static volatile int gear = 1;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
 int reset = 0;
@@ -182,6 +183,10 @@ void callback(Message msg) {
             }
             break;
 
+        case GEAR:
+            gear = atoi(msg.args[0]);
+            break;
+
         case HONK:
             if(!strcmp(msg.args[0], "1")) {
                 if (!strcmp(msg.args[1], "1")) {
@@ -289,12 +294,12 @@ int checkDead(int dead) {
 
     if (!(PIND & (1<<7)) && (dead != 1)) {
 
-        sendMessage(DEADMAN, "1", "1", msg);
+        sendMessage(DEADMAN, "2", "1", msg);
         _delay_ms(50);
         return 1;
     } else if ((PIND & (1<<7)) && (dead != 0)) {
 
-        sendMessage(DEADMAN, "1", "0", msg);
+        sendMessage(DEADMAN, "2", "0", msg);
         _delay_ms(50);
         return 0;
     }
@@ -439,9 +444,8 @@ int main(void) {
     nxtStr = strings[1];
 
 
-    int cState, dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor, gear;
+    int cState, dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor;
     cState = dead = vertAdc = horAdc = lH = lV = ldh = lndh = vert = hor = 0;
-    gear = 1;
 
     Message msg;
 
