@@ -23,6 +23,7 @@ static volatile int cBtn = 0;
 static volatile int gear = 1;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
+static volatile char *infoStr;
 int reset = 0;
 int mH = 0;
 int strInt, prev, mPrev, mStrInt;
@@ -31,7 +32,7 @@ char *selStr;
 char *nxtStr;
 char *mCurrStr, *mSelStr, *mNxtStr;
 char *mStrings[5];
-char *strings[6];
+char *strings[10];
 
 void blink(void) {
     PORTC |= (1<<PORTC5);
@@ -122,7 +123,7 @@ void MelmenuLeft(void) {
 
 void menuRight(void) {
     _delay_ms(10);
-    if (!(++strInt > 5)) {
+    if (!(++strInt > 9)) {
         currStr = nxtStr;
         nxtStr = strings[strInt];
     } else {
@@ -223,6 +224,11 @@ void callback(Message msg) {
             break;
 
 
+        case INFO:
+            blink();
+            strcpy(infoStr, msg.args[0]);
+
+            break;
 
         default:
             break;
@@ -270,6 +276,7 @@ void writeRegMenu(int dead, int gear) {
     writeData(cBtn + 48);
 
     moveCursor(0b10100000);
+    writeString(infoStr);
     
 }
 
@@ -415,6 +422,24 @@ void melodiesMenu() {
 
 }
 
+int checkCMD() {
+    //Message msg;
+    //if (!strcmp(selStr, strings[6])) {
+    //    sendMessage(CMD, "0", NULL, msg);
+    //    return 1;
+    //} else if (!strcmp(selStr, strings[7])) {
+    //    sendMessage(CMD  "1", NULL, msg);
+    //    return 1;
+    //} else if (!strcmp(selStr, strings[8])) {
+    //    sendMessage(CMD, "2", NULL, msg);
+    //    return 1;
+    //} else if (!strcmp(selStr, strings[9])) {
+    //    sendMessage(CMD, "3", NULL, msg);
+    //    return 1;
+    //}
+    return 0;
+}
+
 /*
    The main loop that controlls the program flow. 
    */
@@ -439,7 +464,13 @@ int main(void) {
     strings[3] = "st3";
     strings[4] = "Melodies";
     strings[5] = "CC";
+    strings[6] = "FWD";
+    strings[7] = "BCK";
+    strings[8] = "90R";
+    strings[9] = "90L";
 
+
+    infoStr = "NaN";
     selStr = currStr = strings[0];
     nxtStr = strings[1];
 
@@ -533,7 +564,9 @@ int main(void) {
 
                 } else {
                     selStr = currStr;
-                    sendMessage(CSTSTRING, selStr, NULL, msg);
+                    if (!checkCMD()) {
+                        sendMessage(CSTSTRING, selStr, NULL, msg);
+                    }
                 }
             }
         }

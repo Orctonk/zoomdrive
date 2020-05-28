@@ -59,13 +59,13 @@ void lcdInit(void){
     _delay_ms(50);
     SPI_TransmitRecieve(0x39);
     _delay_us(40);
-    SPI_TransmitRecieve(0x15);
+    SPI_TransmitRecieve(0x1D);
     _delay_us(40);
-    SPI_TransmitRecieve(0x55);
+    SPI_TransmitRecieve(0x50);
     _delay_us(40);
-    SPI_TransmitRecieve(0x6E);
+    SPI_TransmitRecieve(0x6C);
     _delay_us(40);
-    SPI_TransmitRecieve(0x72);
+    SPI_TransmitRecieve(0x7C);
     _delay_us(40);
     SPI_TransmitRecieve(0x38);
     _delay_us(40);
