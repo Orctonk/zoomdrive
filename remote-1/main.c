@@ -19,6 +19,8 @@ static volatile int lastCallback = 0;
 static volatile int callStop = 0;
 static volatile char *cString;
 static volatile char *sString;
+static volatile char *rString;
+static volatile char *tString;
 int reset = 0;
 int strInt, prev, star;
 char *currStr;
@@ -166,8 +168,8 @@ void callback(Message msg) {
             }
             break;
 
-        case INFO:
-            strcpy(infoStr, msg.args[0]);
+        case INFORMATION:
+            strcpy(cString, msg.args[0]);
 
             break;
 
@@ -175,6 +177,8 @@ void callback(Message msg) {
         case UPDATE_SENSORS:
 
             strcpy(sString, msg.args[0]);
+            strcpy(rString, msg.args[1]);
+            strcpy(tString, msg.args[2]);
             break;
         
         default:
@@ -225,12 +229,15 @@ void writeToScreen(int dead, int gear, int star) {
 
     writeString("INFO: ");
     writeString(cString);
-    writeString(" SENSOR: ");
-    writeString(sString);
-
     moveCursor(0b10100000);
+    writeString("SENSOR: ");
+    writeString(sString);
+    writeData(' ');
+    writeString(rString);
+    writeData(' ');
+    writeString(tString);
 
-    writeString(infoString);
+
 
 }
 
@@ -273,6 +280,9 @@ int checkDead(int dead) {
 int main(void) {
 
     cString = "NaN";
+    sString = "S";
+    rString = "R";
+    tString = "T";
 
     int dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor;
     dead = vertAdc = horAdc = lH = lV = ldh = lndh = vert = hor = 0;
