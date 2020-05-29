@@ -19,6 +19,8 @@ typedef enum MessageType{
     HEARTBEAT       = (TOCAR)       |   6,
     CSTSTRING       = (TOCAR)       |   7,
     GEAR            = (TOCAR)       |   8,
+    INFORMATION     = (TOCAR)       |   9,
+    CMD             = (TOCAR)       |   10,
     UPDATE_STATE    = (FROMCAR)     |   9,
     PONG            = (FROMCAR)     |   10,
     CARBUTTON       = (FROMCAR)     |   11,

@@ -32,7 +32,7 @@ char *selStr;
 char *nxtStr;
 char *mCurrStr, *mSelStr, *mNxtStr;
 char *mStrings[5];
-char *strings[10];
+char *strings[8];
 
 // Blinks the LED on PC5;
 void blink(void) {
@@ -137,7 +137,7 @@ int readADC(int channel) {
  *
  * */
 void MelmenuRight(void) {
-    _delay_ms(10);
+    _delay_ms(20);
     if (!(++mStrInt > 4)) {
         mCurrStr = mNxtStr;
         mNxtStr = mStrings[mStrInt];
@@ -160,7 +160,7 @@ void MelmenuRight(void) {
  * */
 void MelmenuLeft(void) {
 
-    _delay_ms(10);
+    _delay_ms(20);
     if (!(--mStrInt < 0)) {
         mNxtStr = mCurrStr;
         mCurrStr = mStrings[mStrInt];
@@ -183,8 +183,8 @@ void MelmenuLeft(void) {
  *
  * */
 void menuRight(void) {
-    _delay_ms(10);
-    if (!(++strInt > 9)) {
+    _delay_ms(20);
+    if (!(++strInt > 7)) {
         currStr = nxtStr;
         nxtStr = strings[strInt];
     } else {
@@ -206,12 +206,12 @@ void menuRight(void) {
  * */
 void menuLeft(void) {
 
-    _delay_ms(10);
+    _delay_ms(20);
     if (!(--strInt < 0)) {
         nxtStr = currStr;
         currStr = strings[strInt];
     } else {
-        strInt = 4;
+        strInt = 7;
         nxtStr = currStr;
         currStr = strings[strInt];
     }
@@ -329,7 +329,7 @@ void callback(Message msg) {
             break;
 
 
-        case INFO:
+        case INFORMATION:
             strcpy(infoStr, msg.args[0]);
 
             break;
@@ -640,20 +640,14 @@ void melodiesMenu() {
  * void
  * */
 int checkCMD(void) {
-    //Message msg;
-    //if (!strcmp(selStr, strings[6])) {
-    //    sendMessage(CMD, "0", NULL, msg);
-    //    return 1;
-    //} else if (!strcmp(selStr, strings[7])) {
-    //    sendMessage(CMD  "1", NULL, msg);
-    //    return 1;
-    //} else if (!strcmp(selStr, strings[8])) {
-    //    sendMessage(CMD, "2", NULL, msg);
-    //    return 1;
-    //} else if (!strcmp(selStr, strings[9])) {
-    //    sendMessage(CMD, "3", NULL, msg);
-    //    return 1;
-    //}
+    Message msg;
+    if (!strcmp(selStr, strings[6])) {
+        sendMessage(CMD, "1", NULL, msg);
+        return 1;
+    } else if (!strcmp(selStr, strings[7])) {
+        sendMessage(CMD,  "0", NULL, msg);
+        return 1;
+    } 
     return 0;
 }
 
@@ -681,10 +675,8 @@ int main(void) {
     strings[3] = "st3";
     strings[4] = "Melodies";
     strings[5] = "CC";
-    strings[6] = "FWD";
-    strings[7] = "BCK";
-    strings[8] = "90R";
-    strings[9] = "90L";
+    strings[6] = "90R";
+    strings[7] = "90L";
 
 
     infoStr = "NaN";
