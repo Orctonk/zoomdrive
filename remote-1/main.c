@@ -18,12 +18,15 @@ static volatile int gear = 1;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
 static volatile char *cString;
+static volatile char *sString;
 int reset = 0;
 int strInt, prev, star;
 char *currStr;
 char *selStr;
 char *nxtStr;
+char *infoStr;
 char *strings[5];
+
 
 void blink(void) {
     PORTB |= (1<<PORTB6);
@@ -155,16 +158,25 @@ void callback(Message msg) {
             break;
 
         case UPDATE_EM:
-
-            //Skriv till sträng
             if (!strcmp(msg.args[0], "1")) {
                 star = 1;
-                //skriv inte
+                
             } else {
                 star = 0;
             }
             break;
 
+        case INFO:
+            strcpy(infoStr, msg.args[0]);
+
+            break;
+
+        
+        case UPDATE_SENSORS:
+
+            strcpy(sString, msg.args[0]);
+            break;
+        
         default:
             break;
     }
@@ -213,8 +225,12 @@ void writeToScreen(int dead, int gear, int star) {
 
     writeString("INFO: ");
     writeString(cString);
+    writeString(" SENSOR: ");
+    writeString(sString);
 
     moveCursor(0b10100000);
+
+    writeString(infoString);
 
 }
 
