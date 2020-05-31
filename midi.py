@@ -7,39 +7,44 @@ inport = mido.open_input(mido.get_input_names()[1])
 broker = "tfe.iotwan.se"
 port = 1883
 subscribe_topic = "zoomdrive/#"
+dm = False
 
 def handleNote(msg):
+    global dm
     mqmsg = ""
     if(msg.note == 43):
         if msg.type == 'note_on':
+            dm = True
             arg = 1
         if msg.type == 'note_off':
+            dm = False
             arg = 0
         mqmsg = "35 3 %d" % arg
-    if(msg.note == 55):
-        if msg.type == 'note_on':
-            arg = -1
-        if msg.type == 'note_off':
-            arg = 0
-        mqmsg = "32 %d" % arg
-    elif(msg.note == 56):
-        if msg.type == 'note_on':
-            arg = 1
-        else:
-            arg = 0
-        mqmsg = "32 %d" % arg
-    elif(msg.note == 57):
-        if msg.type == 'note_on':
-            arg = 1
-        else:
-            arg = 0
-        mqmsg = "33 %d" % arg
-    elif(msg.note == 53):
-        if msg.type == 'note_on':
-            arg = -1
-        else:
-            arg = 0
-        mqmsg = "33 %d" % arg
+    if dm:
+        if(msg.note == 55):
+            if msg.type == 'note_on':
+                arg = -1
+            if msg.type == 'note_off':
+                arg = 0
+            mqmsg = "32 %d" % arg
+        elif(msg.note == 56):
+            if msg.type == 'note_on':
+                arg = 1
+            else:
+                arg = 0
+            mqmsg = "32 %d" % arg
+        elif(msg.note == 57):
+            if msg.type == 'note_on':
+                arg = 1
+            else:
+                arg = 0
+            mqmsg = "33 %d" % arg
+        elif(msg.note == 53):
+            if msg.type == 'note_on':
+                arg = -1
+            else:
+                arg = 0
+            mqmsg = "33 %d" % arg
 
     if mqmsg != "":
         client.publish("zoomdrive/to_car",mqmsg)
