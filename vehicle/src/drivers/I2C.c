@@ -44,10 +44,10 @@ void green_lamp(bool lamp_switch){
 	//Read current and apply new command.
 	uint8_t data = i2c_readAck(); 
 	if(lamp_switch){
-		data |= (1<< PIN1);
+		data &= ~(1<< PIN1);
 	}
 	else {
-		data &= ~(1<< PIN1);
+		data |= (1<< PIN1);
 	}
 	
 	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS)|I2C_WRITE ) != 0){
@@ -78,10 +78,10 @@ void yellow_lamp(bool lamp_switch){
 	//Read current and apply new command.
 	uint8_t data = i2c_readAck(); 
 	if(lamp_switch){
-		data |= (1<< PIN0);
+		data &= ~(1<< PIN0);
 	}
 	else {
-		data &= ~(1<< PIN0);
+		data |= (1<< PIN0);
 	}
 
 	if( i2c_rep_start((EXTENDER_SLAVE_ADRESS)|I2C_WRITE ) != 0){

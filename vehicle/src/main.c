@@ -151,8 +151,17 @@ void callback(Message msg){
         //Save time of heartbeat. 
         last_hb = Time_GetMillis();
     }
-    else if(msg.type == GEAR) {
+    else if(msg.type == GEAR){
         engine_set_gear(atoi(msg.args[0]));
+    }
+
+    else if(msg.type == CMD){
+        if(!locked) {
+            if ((((dm1 != dm2) != dm3 )!= dm4) && !(dm1 && dm2 && dm3 && dm4)){
+                engine_manoeuvre(atoi(msg.args[0]));
+            }
+        }          
+
     }
 }
 

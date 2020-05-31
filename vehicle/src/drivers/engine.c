@@ -17,6 +17,8 @@ int back_duty_cycle = 100;
 int direction = 0; 
 int degree = 0;
 int gear = 1;
+float cur_pos;
+
 static volatile uint32_t right_en_ticks = 0;
 static volatile uint32_t left_en_ticks = 0;
 
@@ -64,6 +66,26 @@ void left_wheel(int left){
         OCR0B = 0; 
     }
 }    
+
+/*
+ * Do a fast manoeuvre to turn the car around; 
+ */
+void engine_manoeuvre(int m_direction){
+    cur_pos = engine_get_distance();
+    duty_cycle = 255;
+
+    if(m_direction == 1){
+        right_wheel(1);
+        left_wheel(-1);
+    }
+    else if(m_direction == 0){
+        right_wheel(-1);
+        left_wheel(1);
+    }
+    while((engine_get_distance() - cur_pos) < 0.1);
+    recalc_engine();
+} 
+
 
 /*
  * Decides in what direction and speed each wheel should go.
@@ -133,8 +155,6 @@ void engine_init(void){
 	TCCR0A = (1<<WGM01)|(1<<WGM00)|(1<<COM0A1)|(1<<COM0B1);
 
     recalc_engine();
-
-
 }
 
 /*
@@ -192,7 +212,7 @@ int engine_get_gear(void){
 /*
  * Claculate and return in meters the distance the vehicle has gone since start.
  */
-float engine_get_distance(){
+float engine_get_distance(void){
     
     return ((right_en_ticks + left_en_ticks )/102.5*0.22); 
 }

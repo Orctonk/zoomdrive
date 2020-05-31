@@ -33,6 +33,11 @@
 void engine_init(void);
 
 /*
+ * Do a fast manoeuvre to turn the car around; 
+ */
+void engine_manoeuvre(int m_direction);
+
+/*
  * Set direction of viecle.
  * 
  * direction: 1 if moving forward, -1 if moving backwards, 0 if standing still. 
@@ -73,6 +78,6 @@ int engine_get_gear(void);
 /*
  * Claculate and return in meters the distance the vehicle has gone since start.
  */
-float engine_get_distance();
+float engine_get_distance(void);
 
 #endif 
