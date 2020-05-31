@@ -2,6 +2,7 @@
 #include "sddriver.h"
 #include "oled/u8g.h"
 #include "time.h"
+#include "summer.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -13,10 +14,11 @@
 typedef struct SystemStatus {
     int8_t carSpeed;
     int8_t carHeading;
-	char carDistFront[6];
-	char carDistBack[6];
+	uint8_t carDistFront;
+	uint8_t carDistBack;
     uint8_t carGear;
     bool embreaked;
+	char odo[8];
 	uint32_t car_lastupdate;
     uint32_t remote1_lasthb;
     uint32_t remote2_lasthb;
@@ -34,6 +36,9 @@ void Logger_Init(void){
     status.carHeading = 0;
     status.carSpeed = 0;
     status.carGear = 1;
+	status.odo[0] = '\0';
+	status.carDistBack = 0;
+	status.carDistFront = 0;
     status.embreaked = false;
     status.remote1_lasthb = 0;
     status.remote2_lasthb = 0;
@@ -80,10 +85,17 @@ void Logger_UpdateDisplay(void) {
 					else if(status.carHeading == -1)
 						u8g_DrawBitmapP(&u8g,83,33,1,4,turnarrowleft);
 				}
+				char buf[6];
+				u8g_DrawStr(&u8g,0,30, "ODO:");
+				u8g_DrawStr(&u8g,24,30, status.odo);
+
+				itoa(status.carDistBack,buf,10);
 				u8g_DrawBitmapP(&u8g,0,40,3,11,backdistarrow);
-				u8g_DrawStr(&u8g,0,60, status.carDistBack);
+				u8g_DrawStr(&u8g,0,60, buf);
+
+				itoa(status.carDistFront,buf,10);
 				u8g_DrawBitmapP(&u8g,104,40,3,11,frontdistarrow);
-				u8g_DrawStr(&u8g,104,60, status.carDistFront);
+				u8g_DrawStr(&u8g,104,60, buf);
 			}
 		}
 		else{
@@ -110,8 +122,9 @@ void messageCallback(Message msg) {
 		status.carGear = atoi(msg.args[2]);
 		break;
 	case UPDATE_SENSORS:
-		strcpy(status.carDistFront,msg.args[0]);
-		strcpy(status.carDistBack,msg.args[1]);
+		status.carDistFront = atoi(msg.args[0]);
+		status.carDistBack = atoi(msg.args[1]);
+		strcpy(status.odo,msg.args[2]);
 		break;
     case ENGINE_POWER:
         status.carSpeed = atoi(msg.args[0]);
@@ -131,6 +144,9 @@ void messageCallback(Message msg) {
         else if(msg.args[0][0] == '2')
             status.remote2_lasthb = Time_GetMillis();
         break;
+	case HONK:
+		if(msg.args[0][0] == '2')
+			Summer_PlayMelody(msg.args[1][0] - '0');
     default:
         break;
     }
@@ -199,7 +215,7 @@ void msgcat(char *dest, Message msg){
 		break;
 	case UPDATE_SENSORS:
 		progStr = PSTR("SENSORS");
-		argc = 2;
+		argc = 3;
 		break;
 	case UPDATE_EM:
 		progStr = PSTR("EMSTATE");

@@ -6,14 +6,15 @@
 #include "emdriver.h"
 #include "sddriver.h"
 #include "logger.h"
+#include "summer.h"
 
 void init(void);
 void timerCallback(void);
-void msgcat(char *dest, Message msg);
 
 int main(void)
 {
 	init();
+	DDRD |= (1<<PIN3);
 	while(1){
 		SD_Check();
 		Time_Update();
@@ -30,6 +31,7 @@ void init(void){
 	EM_Init();
 	Logger_Init();
 	SD_Init();
+	Summer_Init();
 	sei();
 }
 

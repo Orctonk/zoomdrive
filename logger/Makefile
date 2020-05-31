@@ -32,7 +32,7 @@ CTUNING = function-sections data-sections unsigned-char unsigned-bitfields pack-
 CWARN = all strict-prototypes
 OPTIMIZE = -Os
 CFLAGS = -mcall-prologues -mmcu=$(MCU)
-LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os -flto
+LDFLAGS = -Wl,-gc-sections -Wl,-Map,output.map -lpololu_$(DEVICE) -Wl,-relax -Os -flto 
 DEFINES = F_CPU=8000000UL DRV_MMC=0 SUMMER_USE_SW RECEIVE_BUFFER_SIZE=128
 
 # From this point nothing should be changed
