@@ -27,6 +27,9 @@
 
 // Store all melodies in program memory to reduce SRAM usage
 static const uint8_t melodies[MELODY_COUNT][MELODY_MAX_LEN] PROGMEM = {
+    { // Basic Honk
+        0x71, 0x80, 0x71, 0x00
+    },
     { // Hemglass
         0x63, 0x6c, 0x6f, 0x6c, 0x48, 0x63, 0x6c, 0x6f, 0x6c, 0x48, 0x63, 0x6d, 
         0x60, 0x6d, 0x6a, 0x60, 0x6a, 0x48, 0x68, 0x00 
@@ -70,7 +73,7 @@ static volatile bool rest = false;
 #endif
 
 // BPM for each melody
-static const uint8_t bpms[MELODY_COUNT] = { 110, 75, 128, 100 };
+static const uint8_t bpms[MELODY_COUNT] = {180, 110, 75, 128, 100 };
 
 // State variables for currently playing melody
 static volatile uint16_t note_time = 0; // The timer cycles left for current note
@@ -108,12 +111,16 @@ ISR(TIMER1_COMPA_vect){
 #endif
     note_time--; 
     if (note_time == 0){
+        PORTD ^= (1<<PIN3);
         current_note++;
         // Read next note from program memory
         uint8_t note = pgm_read_byte(&(melodies[cur_melody][current_note]));
-        if(note == 0xFF){   // Stop buzzer if 0xFF
+        if(note == 0x00){   // Stop buzzer if 0xFF
             TIMSK1 = 0;
             TCCR1B &= ~(1<<CS10);
+#ifdef SUMMER_USE_SW
+            SW_SUMMER_PORT &= ~(1<<SUMMER_PIN);
+#endif
         } else
             Summer_PlayNote(note);
     }

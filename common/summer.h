@@ -7,11 +7,12 @@
 #ifndef __SUMMER_H__
 #define __SUMMER_H__
 
-#define MELODY_HEMGLASS     0
-#define MELODY_USSR         1
-#define MELODY_HERR_GURKA   2
-#define MELODY_TWINKLE      3
-#define MELODY_COUNT        4
+#define MELODY_HONK         0
+#define MELODY_HEMGLASS     1
+#define MELODY_USSR         2
+#define MELODY_HERR_GURKA   3
+#define MELODY_TWINKLE      4
+#define MELODY_COUNT        5
 #define MELODY_MAX_LEN      256
 
 #include <avr/io.h>
