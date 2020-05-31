@@ -111,7 +111,6 @@ ISR(TIMER1_COMPA_vect){
 #endif
     note_time--; 
     if (note_time == 0){
-        PORTD ^= (1<<PIN3);
         current_note++;
         // Read next note from program memory
         uint8_t note = pgm_read_byte(&(melodies[cur_melody][current_note]));
