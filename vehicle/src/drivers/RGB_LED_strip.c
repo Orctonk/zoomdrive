@@ -36,7 +36,7 @@ void LED_strip_init(void){
         colors[i] = (rgb_color){0,0,0};
     }
 
-    led_strip_write(colors,2);
+    LED_rainbow();   
 }
 
 /*
@@ -147,6 +147,23 @@ void LED_green(void){
     led_strip_write(colors, LED_COUNT);
      
 }
+void LED_rainbow(){
+    for(int i = 8; i < LED_COUNT; i++){
+        if(i<11){
+            colors[i] = (rgb_color){ 255, 0, 0 };
+        }
+        else if( i < 14){
+            colors[i] = (rgb_color){255,191,0};
+        }
+        else if( i < 17){
+            colors[i] = (rgb_color){0, 255, 0 };
+        }
+        else {
+            colors[i] = (rgb_color){0, 0, 255};
+        }
+    }
+    led_strip_write(colors, LED_COUNT);
+}
 
 /*
  * Will give the LED strip a colour based on the parameter. 
@@ -165,6 +182,10 @@ void LED_lights(int i){
         break; 
     case MELODY_USSR:
         LED_red();
+        break;
+    case MELODY_HONK:
+        LED_rainbow();
+        break;
     default:
         break;
     }
