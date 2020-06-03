@@ -78,12 +78,21 @@ void Logger_UpdateDisplay(void) {
 				}
 				else if(status.carSpeed > 0){
 					for(uint8_t i = 0; i < status.carGear; i++)
-				//	for(uint8_t i = 0; i < 3; i++)
 						u8g_DrawBitmapP(&u8g,84 + 5*i,40,1,11,forwardarrow);
 					if(status.carHeading == 1)
 						u8g_DrawBitmapP(&u8g,83,55,1,4,turnarrowright);
 					else if(status.carHeading == -1)
 						u8g_DrawBitmapP(&u8g,83,33,1,4,turnarrowleft);
+				}
+				else {
+					if(status.carHeading == 1){
+						u8g_DrawBitmapP(&u8g,83,55,1,4,turnarrowright);
+						u8g_DrawBitmapP(&u8g,27,33,1,4,turnarrowleft);
+					}
+					else if(status.carHeading == -1){
+						u8g_DrawBitmapP(&u8g,83,33,1,4,turnarrowleft);
+						u8g_DrawBitmapP(&u8g,27,55,1,4,turnarrowright);
+					}
 				}
 				char buf[6];
 				u8g_DrawStr(&u8g,0,30, "ODO:");
@@ -212,6 +221,10 @@ void msgcat(char *dest, Message msg){
 	case COLLISION:
 		progStr = PSTR("COLLISION");
 		argc = 2;
+		break;
+	case CMD:
+		progStr = PSTR("MANEUVER");
+		argc = 1;
 		break;
 	case UPDATE_SENSORS:
 		progStr = PSTR("SENSORS");
