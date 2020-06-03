@@ -492,7 +492,7 @@ int cheatCodes(int cState) {
             cState++;
         } else if ((cState == 2) && (!(PIND & (1<<3)))){
             Message msg;
-            sendMessage(HONK, "3", NULL, msg);
+            sendMessage(HONK, "2", "0", msg);
             break;
         } else if (!(PIND & (1<<7)) && !(PIND & (1<<6))) {
             return 0;
@@ -545,7 +545,7 @@ int getHor(void) {
 
     int horAdc = readADC(1);
 
-    if (horAdc >= 800) {
+    if (horAdc >= 700) {
         return 1;
     } else if (horAdc <= 400) {
         return -1;
@@ -639,12 +639,12 @@ void melodiesMenu() {
  * input:
  * void
  * */
-int checkCMD(void) {
+int checkCMD(char* str) {
     Message msg;
-    if (!strcmp(selStr, strings[6])) {
+    if (!strcmp(str, strings[6])) {
         sendMessage(CMD, "1", NULL, msg);
         return 1;
-    } else if (!strcmp(selStr, strings[7])) {
+    } else if (!strcmp(str, strings[7])) {
         sendMessage(CMD,  "0", NULL, msg);
         return 1;
     } 
@@ -709,12 +709,13 @@ int main(void) {
 
             // check if the honk button is pressed
             if (!(PIND & (1<<6)) && (ldh != 1)) {
-                sendMessage(HONK, "2", "1", msg);
                 ldh = 1;
             } else if ((PIND & (1<<6)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);
                 ldh = 0;
             }  
+
+
 
             // if the direction of the stick is changed send a new direction
             // message to MQTT
@@ -727,6 +728,10 @@ int main(void) {
                 lH = hor;
                 horDrive(hor);
             } 
+
+            if (!(PINC & (1<<2))) { 
+                checkCMD(currStr);
+            }
 
         } else {
 
@@ -781,8 +786,8 @@ int main(void) {
 
                 } else {
                     selStr = currStr;
-                    if (!checkCMD()) {
-                        sendMessage(CSTSTRING, selStr, NULL, msg);
+                    if (!checkCMD(selStr)) {
+                        sendMessage(INFORMATION, selStr, NULL, msg);
                     }
                 }
             }

@@ -17,9 +17,9 @@ static volatile int cBtn = 0;
 static volatile int gear = 1;
 static volatile int lastCallback = 0;
 static volatile int callStop = 0;
+static volatile char *rString;
 static volatile char *cString;
 static volatile char *sString;
-static volatile char *rString;
 static volatile char *tString;
 int reset = 0;
 int strInt, prev, star;
@@ -125,7 +125,11 @@ void callback(Message msg) {
         case DEADMAN:
             
             if (!strcmp(msg.args[0], "2")) {
-                PORTB ^= (1<<PINB6);
+                if (!strcmp(msg.args[1], "1")) {
+                    PORTB |= (1<<PINB6);
+                } else {
+                    PORTB &= ~(1<<PINB6);
+                }
             }
 
             break;
@@ -143,10 +147,6 @@ void callback(Message msg) {
                 }
             }
 
-            break;
-
-        case CSTSTRING:
-            strcpy(cString, msg.args[0]);
             break;
 
         case CARBUTTON:
@@ -175,10 +175,10 @@ void callback(Message msg) {
 
         
         case UPDATE_SENSORS:
+            sprintf(sString, "%s", msg.args[0]);
+            sprintf(rString, "%s", msg.args[1]);
+            sprintf(tString, "%s", msg.args[2]);
 
-            strcpy(sString, msg.args[0]);
-            strcpy(rString, msg.args[1]);
-            strcpy(tString, msg.args[2]);
             break;
         
         default:
@@ -230,7 +230,6 @@ void writeToScreen(int dead, int gear, int star) {
     writeString("INFO: ");
     writeString(cString);
     moveCursor(0b10100000);
-    writeString("SENSOR: ");
     writeString(sString);
     writeData(' ');
     writeString(rString);
@@ -280,9 +279,9 @@ int checkDead(int dead) {
 int main(void) {
 
     cString = "NaN";
-    sString = "S";
-    rString = "R";
-    tString = "T";
+    sString = "Srr";
+    rString = "Rrr";
+    tString = "Trr";
 
     int dead, vertAdc, horAdc, ldh, lndh, lH, lV, vert, hor;
     dead = vertAdc = horAdc = lH = lV = ldh = lndh = vert = hor = 0;
@@ -321,9 +320,9 @@ int main(void) {
          *
          * */
         if (horAdc <= 480) {
-            hor = 1;
-        } else if (horAdc >= 580) {
             hor = -1;
+        } else if (horAdc >= 580) {
+            hor = 1;
         } else {
             hor = 0;
         }
@@ -331,7 +330,6 @@ int main(void) {
         if ((dead = checkDead(dead))) {
 
             if (!(PIND & (1<<3)) && (ldh != 1)) {
-                sendMessage(HONK, "2", "1", msg);
                 ldh = 1;
             } else if ((PIND & (1<<3)) && (ldh != 0)) {
                 sendMessage(HONK, "2", "0", msg);

@@ -25,6 +25,15 @@
 #include "mqtt_client.h"
 #include "esp_log.h"
 
+/*
+ * Simple program that sends and recieves information over MQTT and UART.
+ *
+ * Heavily based on example code supplied by Espressif for the esp-idf framework
+ *
+ * Author: Jakob Lundkvist
+ *
+ * */
+
 esp_mqtt_client_handle_t client;
 
 /* The examples use WiFi configuration that you can set via project configuration menu
@@ -49,6 +58,9 @@ static const char *TAG = "wifi station";
 
 static int s_retry_num = 0;
 
+/*
+ * Handle wifi events.
+ * */
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
@@ -71,6 +83,10 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
+/*
+ * Initiates the WiFi.
+ *
+ * */
 void wifi_init_sta(void)
 {
     s_wifi_event_group = xEventGroupCreate();
@@ -138,6 +154,9 @@ EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
     vEventGroupDelete(s_wifi_event_group);
 }
 
+/*
+ * Handles events over MQTT.
+ * */
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
@@ -146,15 +165,10 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-           // msg_id = esp_mqtt_client_publish(client, "/topic/qos1", "data_3", 0, 1, 0);
-           // ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 
-           msg_id = esp_mqtt_client_subscribe(client, "zoomdrive/#", 1);
+            // Subscribes to all channels under zoomdrive.
+            msg_id = esp_mqtt_client_subscribe(client, "zoomdrive/#", 1);
             ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-           // ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-           // msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
-           // ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -171,11 +185,15 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
             break;
         case MQTT_EVENT_DATA:
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+
+            // Modifies the recieved string to comply with the message interface
+            // in message.c. 
             event->data[event->data_len] = '\n';
             event->data[event->data_len+1] = '\0';
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             printf("DATA=%.*s\r\n", event->data_len, event->data);
 
+            // Writes the message over UART.
             uart_write_bytes(UART_NUM_2, (const char *) event->data, event->data_len+1);
             break;
         case MQTT_EVENT_ERROR:
@@ -193,6 +211,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     mqtt_event_handler_cb(event_data);
 }
 
+/*
+ * Starts MQTT on the ESP32
+ * */
 void mqtt_start(void) {
     const esp_mqtt_client_config_t mqtt_cfg = {
         .uri = "mqtt://tfe.iotwan.se:1883",
@@ -205,6 +226,10 @@ void mqtt_start(void) {
 
 }
 
+/*
+ * Inits the UART and reads continously from it to see if it should send the
+ * information over MQTT.
+ * */
 void uartInit(void) {
 
     /* Configure parameters of an UART driver,
@@ -231,11 +256,15 @@ void uartInit(void) {
         // Read data from the UART
         int len = uart_read_bytes(UART_NUM_2, data, 1024, 20 / portTICK_RATE_MS);
 
+        // If any data was read.
         if (len > 0) {
 
+            // Remove the newline
             data[len-1] = '\0';
 
             ESP_LOGI(TAG, "DATA READ: %s", data);
+
+            // check which type the message should be sent under. 
             int read = (int)*data;
             read &= 0b11100000;
 
@@ -266,6 +295,7 @@ void uartInit(void) {
     }
 }
 
+// Main function.
 void app_main(void)
 {
     nvs_flash_init();
