@@ -62,7 +62,7 @@ void init(void){
     cb_pressed = false; 
     collision_det = false;
 
-    dm1 = false;
+    dm1 = false; 
     dm2 = false; 
     dm3 = false;
     dm4 = false;
@@ -72,6 +72,8 @@ void init(void){
 
 /*
  * Recieves a message and perform right action.
+ * 
+ * msg: Message to handle
  */ 
 void callback(Message msg){
     
@@ -167,6 +169,8 @@ void callback(Message msg){
 
 /*
  * Sends updates.
+ * 
+ * update_msg: Message to set arguments and send.
  */
 void send_update(Message update_msg){
     update_msg.type = UPDATE_EM;
@@ -189,6 +193,8 @@ void send_update(Message update_msg){
 
 /*
  * Handles if the car button has been pressed.
+ * 
+ * update_msg: Message to set arguments and send.
  */
 void car_button_handle(Message update_msg){
     if(button_pressed() && !cb_pressed){
@@ -207,6 +213,8 @@ void car_button_handle(Message update_msg){
 
 /*
  * Handles if a collision has occured.
+ * 
+ * update_msg: Message to set arguments and send.
  */
 void collision_handle(Message update_msg){
     if((right_collision()|| left_collision())&& !collision_det){
@@ -302,7 +310,22 @@ int main(void) {
             }
         }
 
+        //Check if vehicle is turning and set turn lights.
+        if(engine_get_heading() == 1){
+            turn_signal_right(true);
+            turn_signal_left(false);
+        }
+        else if(engine_get_heading() == -1){
+            turn_signal_left(true);
+            turn_signal_right(false);
+        }
+        else{
+            if(engine_get_direction() != -1){
+                turn_signal_right(false);
+                turn_signal_left(false);
+            }
 
+        // Make sure to set green light if remotecontrolled.
         if ((((dm1 != dm2) != dm3 )!= dm4) && !(dm1 && dm2 && dm3 && dm4)){
             green_lamp(true);
         }
@@ -310,21 +333,6 @@ int main(void) {
             green_lamp(false);
             
         }
-
-        //Check if vehicle is turning and set turn lights.
-        if(engine_get_heading() == 1){
-            turn_signal_right(true);
-            turn_signal_left(false);
-        }
-        else if(engine_get_heading() == -1){
-            
-            turn_signal_left(true);
-            turn_signal_right(false);
-        }
-        else{
-            turn_signal_right(false);
-            turn_signal_left(false);
-
         //Check if the car button is pressed. 
         car_button_handle(update_msg);
 

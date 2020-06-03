@@ -34,6 +34,8 @@ void engine_init(void);
 
 /*
  * Do a fast manoeuvre to turn the car around; 
+ * 
+ * m_direction: 1 if right, 0 if left.
  */
 void engine_manoeuvre(int m_direction);
 

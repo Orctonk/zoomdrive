@@ -190,8 +190,10 @@ void LED_lights(int i){
         break;
     }
 }
-/************************************/
- /*Following drivers got from Pololu*/
+/*****************************************************
+ *Following drivers got from Pololu
+ * Link: https://github.com/pololu/pololu-led-strip-avr
+ *******************************************************/
 
 void __attribute__((noinline)) led_strip_write(rgb_color * colors, uint16_t count)
 {

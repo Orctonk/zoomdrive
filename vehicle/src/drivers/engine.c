@@ -31,6 +31,8 @@ ISR(INT1_vect){
 
 /*
  * Set direction for right wheel
+ * 
+ * right: 1 if moving forward, -1 if moving backwards, 0 if standing still.
  */
 void right_wheel(int right){
     if(right == 1){
@@ -50,6 +52,8 @@ void right_wheel(int right){
 
 /*
  * Set direction for left wheel
+ * 
+ * left: 1 if moving forward, -1 if moving backwards, 0 if standing still.
  */
 void left_wheel(int left){
     if(left >= 1){
@@ -69,6 +73,8 @@ void left_wheel(int left){
 
 /*
  * Do a fast manoeuvre to turn the car around; 
+ * 
+ * m_direction: 1 if right, 0 if left.
  */
 void engine_manoeuvre(int m_direction){
     cur_pos = engine_get_distance();
@@ -101,7 +107,8 @@ void recalc_engine(void){
     else if(gear == 3){
         duty_cycle = 250;
     }
-
+    // Depending on heading and direction, set speed for rach wheel
+    
     if(degree == 1){
         if(direction == 0){
             right_wheel(1);
@@ -214,7 +221,7 @@ int engine_get_gear(void){
  */
 float engine_get_distance(void){
     
-    return ((right_en_ticks + left_en_ticks )/102.5*0.22); 
+    return ((right_en_ticks + left_en_ticks )/105*0.22); 
 }
 
 
