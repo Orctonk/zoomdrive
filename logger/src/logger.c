@@ -1,6 +1,7 @@
 /*  FILE:			logger.c
  *  DESCRIPTION: 
  *      Implementation of the logger with OLED display and SD card logging.
+ * 		Uses the u8glib library https://github.com/olikraus/u8glib for the OLED display.
  *  AUTHOR:         Filip Henningsson, c18fhn@cs.umu.se
  */
 
