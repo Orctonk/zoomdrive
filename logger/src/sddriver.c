@@ -17,14 +17,36 @@
 static FATFS sd_fs;
 static bool sd_connected;
 
-// 100Hz clock to trigger disk I/O internal timer
+/* 
+ * 100Hz clock to trigger disk I/O internal timer
+ */
 ISR(TIMER0_COMPA_vect){
 	disk_timerproc();	/* Drive timer procedure of low level disk I/O module */
 }
 
+/*
+ * Starts the SD card
+ */
+void SD_Start(void){
+    SD_PORT &= ~(1<<SD_POWER_PIN);
+    sd_connected = (f_mount(&sd_fs, "", 1) == FR_OK);
+}
+
+/*
+ * Shuts down the SD card
+ */
+void SD_Shutdown(void){
+    f_unmount("");
+    sd_connected = false;
+
+    SD_PORT |= (1<<SD_POWER_PIN);
+}
+
 // ------------- PUBLIC -------------
 
-// Initializes the SD-card
+/*
+ * Initializes SD-card
+ */
 void SD_Init(void){
     DDRD &= ~(1<<PIN5);
 	PORTD |= (1<<PIN5);
@@ -38,18 +60,9 @@ void SD_Init(void){
 	TIMSK0 = _BV(OCIE0A);
 }
 
-void SD_Start(void){
-    SD_PORT &= ~(1<<SD_POWER_PIN);
-    sd_connected = (f_mount(&sd_fs, "", 1) == FR_OK);
-}
-
-void SD_Shutdown(void){
-    f_unmount("");
-    sd_connected = false;
-
-    SD_PORT |= (1<<SD_POWER_PIN);
-}
-
+/*
+ * Updates state of SD-card depending on toggle
+ */
 void SD_Check(void){
     if(PIND & (1<<PIN5)){
         if(!SD_IsConnected()){
@@ -66,9 +79,15 @@ void SD_Check(void){
     }
 }
 
-// Writes a formated string to a connected SD-card
-// Note that the final string should not be over
-// 128 characters long including null terminator
+/*
+ * Writes a formated string to a connected SD-card
+ * Note that the final string should not be over
+ * 128 characters long including null terminator
+ * 
+ * time:    The timestamp of the logged message
+ * type:    The integer type of the message
+ * msg:     The string representation of the message
+ */
 void SD_Write(uint32_t time, uint8_t type, char *msg){
     FRESULT fr;
     FIL logfile;
@@ -90,6 +109,11 @@ void SD_Write(uint32_t time, uint8_t type, char *msg){
     }
 }
 
+/* 
+ *Checks whether the SD card is connected
+ *
+ * Return:  True if SD is connected or false otherwise
+ */
 bool SD_IsConnected(void){
     return sd_connected;
 }

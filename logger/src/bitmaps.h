@@ -1,5 +1,15 @@
+/*  FILE:			bitmap.h
+ *  DESCRIPTION: 
+ *      Bitmaps to display system status on the logger OLED
+ *  AUTHOR:         Filip Henningsson, c18fhn@cs.umu.se
+ */
+
+#ifndef __BITMAPS_H__
+#define __BITMAPS_H__
+
 #include <avr/pgmspace.h>
 
+// Image of the car displayed
 static const uint8_t carimage[] PROGMEM = {
 	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x40,	0x0, 
 	0x0,	0x0,	0x0,	0x3f,	0xf0,	0x0,	0x60,	0x0,	0x0,	0x0,	0x0,	0x40, 
@@ -22,6 +32,7 @@ static const uint8_t carimage[] PROGMEM = {
 	0xf0,	0x0,	0x40,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0,	0x0	
 };
 
+// Cross over the car when disconnected
 static const uint8_t cardccross[] PROGMEM = {
 	0xf0, 	0x00, 	0x00, 	0x00, 	0x00, 	0x00, 	0x03, 	0xc0,
 	0x3c,	0x00, 	0x00, 	0x00, 	0x00, 	0x00, 	0x0f, 	0x00,
@@ -54,6 +65,7 @@ static const uint8_t cardccross[] PROGMEM = {
 
 };
 
+// Arrow used when car is reversing
 static const uint8_t backarrow[] PROGMEM = {
 	0b00000111,
 	0b00001110,
@@ -68,6 +80,7 @@ static const uint8_t backarrow[] PROGMEM = {
 	0b00000111
 };
 
+// Arrow used to indicate speed
 static const uint8_t forwardarrow[] PROGMEM = {
 	0b11100000,
 	0b01110000,
@@ -82,6 +95,7 @@ static const uint8_t forwardarrow[] PROGMEM = {
 	0b11100000
 };
 
+// Arrow used when turning left
 static const uint8_t turnarrowleft[] PROGMEM = {
 	0b00011000,
 	0b00111100,
@@ -89,6 +103,7 @@ static const uint8_t turnarrowleft[] PROGMEM = {
 	0b11000011
 };
 
+// Arrow used when turning right
 static const uint8_t turnarrowright[] PROGMEM = {
 	0b11000011,
 	0b01100110,
@@ -96,6 +111,7 @@ static const uint8_t turnarrowright[] PROGMEM = {
 	0b00011000
 };
 
+// Arrow to indicate distance read by back distance sensor
 static const uint8_t backdistarrow[] PROGMEM = {
     0b10000000, 0b00000000, 0b00000000, 
     0b10000100, 0b00000000, 0b00000000, 
@@ -110,6 +126,7 @@ static const uint8_t backdistarrow[] PROGMEM = {
     0b10000000, 0b00000000, 0b00000000,
 };
 
+// Arrow to indicate distance read by front distance sensor
 static const uint8_t frontdistarrow[] PROGMEM = {
     0b00000000, 0b00000000, 0b00000001,  
     0b00000000, 0b00000000, 0b00100001,  
@@ -123,3 +140,4 @@ static const uint8_t frontdistarrow[] PROGMEM = {
     0b00000000, 0b00000000, 0b00100001,  
     0b00000000, 0b00000000, 0b00000001,  
 };
+#endif // __BITMAPS_H__
