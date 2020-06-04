@@ -3,14 +3,23 @@
 
 #define UBBR_VAL 12;
 
+/*
+ * Contains helperfunctions for the usart.
+ *
+ * Date: 2020-06-04
+ * Author: Erika Lundin
+ * */
+
+/**
+ * Initialize usart. 
+ */
 void usart_init(void) {
     UBRR0 = UBBR_VAL;
     UCSR0B = (1 << RXEN0) | (1 << TXEN0);
 }
 
 /**
- * Send a byte over the usart.
- * data - byte to send.
+ * Sends a byte over the usart.
  */
 void usart_write(int data) {
     while (!BIT_SET(UCSR0A, UDRE0));
@@ -18,8 +27,7 @@ void usart_write(int data) {
 }
 
 /**
- * Send a string over usart.
- * string - string to send.
+ * Sends a string over usart.
  */
 void usart_write_string(const char* string) {
     while (*string != '\0') {

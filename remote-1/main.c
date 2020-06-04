@@ -11,6 +11,14 @@
 #include <util/delay.h> 
 #include "lcd.h"
 
+/**
+ * A simple program for a remote control to a vehicle. Uses a accelerometer 
+ * to steer the car.
+ * 
+ * Author: Erika Lundin
+ * Date: 2020-06-04
+ */
+
 
 // Global variables
 static volatile int cBtn = 0;
@@ -29,7 +37,9 @@ char *nxtStr;
 char *infoStr;
 char *strings[5];
 
-
+/**
+ * Blinks the LED on PB6.
+ */ 
 void blink(void) {
     PORTB |= (1<<PORTB6);
     _delay_ms(10);
@@ -37,26 +47,25 @@ void blink(void) {
     _delay_ms(10);
 }
 
+/**
+ * Initialize the LED-display.
+ */ 
 void ledInit(void) {
     DDRB |= (1<<PINB6) | (1<<PINB7);
     PORTB &= ~(1<<PINB6) | (1<<PINB7);
 }
 
+/**
+ * Initialize the buttons.
+ */ 
 void btnInit(void) {
 
     DDRD &= ~(1<<PIND2) | (1<<PIND3) | (1<<PIND4);
     PORTD |= (1<<PIND2) | (1<<PIND3) | (1<<PIND4);
 }
 
-/*
-   A function that initializes the ADC to be used.
-
-return:
-void
-
-input:
-void
-
+/**
+* A function that initializes the ADC to be used.
 */
 void ADCInit(void){
 
@@ -65,15 +74,8 @@ void ADCInit(void){
     ADMUX |= (0UL<<REFS1) | (1UL<<REFS0);  
 }
 
-/*
-   A function that reads from the ADC-channel specified as the parameter. 
-
-return:
-@ADCW - What has been read on that channel.
-
-input:
-@channel - The channel to be read from.
-
+/**
+* A function that reads from the ADC-channel specified as the parameter. 
 */
 int readADC(int channel) {
 
@@ -85,6 +87,10 @@ int readADC(int channel) {
     return ADCW;
 }
 
+/**
+ * A function that checks if if the hearbeats have stopped based on a set timer.
+ * If they have it toggles an LED.
+ */ 
 void timeCallback(void) {
 
     if (lastCallback) {
@@ -93,6 +99,9 @@ void timeCallback(void) {
     lastCallback = 1;
 }
 
+/**
+ * A simple helperfunction for sending a message.
+ */ 
 void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
     int argc =  1;
     msg.type = topic;
@@ -107,10 +116,15 @@ void sendMessage(int topic, char* payLoad1, char* payLoad2, Message msg) {
     Message_Send(msg, argc);
 }
 
+/**
+ * Handles messages that comes through Usart.
+ */ 
 void callback(Message msg) {
-
+    
+    //Case after what type of message that needs to be handled. 
     switch(msg.type) {
 
+        // Reset last callback and reply to a heartbeat from logger.
         case HEARTBEAT:
             lastCallback = 0;
             PORTB &= ~(1<<PINB7);
@@ -121,7 +135,8 @@ void callback(Message msg) {
                 _delay_ms(50);
             }
             break;
-
+        // Check if dead man's grip is activated on remote 2 and if so, turn on 
+        // LED PB6.
         case DEADMAN:
             
             if (!strcmp(msg.args[0], "2")) {
@@ -133,11 +148,13 @@ void callback(Message msg) {
             }
 
             break;
-
+        
+        //Syncs gears between the remotes.
         case GEAR:
             gear = atoi(msg.args[0]);
             break;
 
+        // Check if the honk is directed at this remote.
         case HONK:
             if(!strcmp(msg.args[0], "0")) {
                 if (!strcmp(msg.args[1], "1")) {
@@ -149,6 +166,7 @@ void callback(Message msg) {
 
             break;
 
+        //Check if the carbutton is activated, if so the summer will honk.
         case CARBUTTON:
             if (!strcmp(msg.args[0], "1")) {
                 cBtn = 1;
@@ -159,6 +177,7 @@ void callback(Message msg) {
             }
             break;
 
+        //Check if the emergencybutton is activated.
         case UPDATE_EM:
             if (!strcmp(msg.args[0], "1")) {
                 star = 1;
@@ -168,12 +187,13 @@ void callback(Message msg) {
             }
             break;
 
+        //Read in information from the car.
         case INFORMATION:
             strcpy(cString, msg.args[0]);
 
             break;
 
-        
+        //Update the sensorsmessages from the car.
         case UPDATE_SENSORS:
             sprintf(sString, "%s", msg.args[0]);
             sprintf(rString, "%s", msg.args[1]);
@@ -186,7 +206,9 @@ void callback(Message msg) {
     }
 }
 
-
+/**
+ * Sends a message to the car with the vertical direction it should drive in.
+ */
 void vertDrive(int dir) {
 
     Message msg;
@@ -199,6 +221,9 @@ void vertDrive(int dir) {
     }
 }
 
+/**
+ * Sends a message to the car with the horizontal direction it should drive in.
+ */
 void horDrive(int dir) {
 
     Message msg;
@@ -211,6 +236,9 @@ void horDrive(int dir) {
     }
 }
 
+/**
+ * Print the information to the LCD-display.
+ */
 void writeToScreen(int dead, int gear, int star) {
     writeString("G:");
     writeData(gear+48);
@@ -240,10 +268,11 @@ void writeToScreen(int dead, int gear, int star) {
 
 }
 
-
+/**
+ * Initialize all the necessary parts.
+ */
 void inits(void) {
 
-    // Initialize all the necessary parts.
     Time_Init();
     Time_RegisterTimer(600, timeCallback);
     lcdInit();
@@ -255,6 +284,9 @@ void inits(void) {
     Message_Register(0xff, callback);
 }
 
+/**
+ * Checks if the DeadMan button is pressed and returns the answer.
+ */ 
 int checkDead(int dead) {
     Message msg;
 
@@ -314,11 +346,6 @@ int main(void) {
         }
         
 
-        // Kanke vänd på dessa???
-        /*
-         * Kanske sova.....
-         *
-         * */
         if (horAdc <= 480) {
             hor = -1;
         } else if (horAdc >= 580) {
@@ -344,9 +371,6 @@ int main(void) {
 
         } else {
 
-            /*
-             * End me 
-             * */
             if (!(PIND & (1<<3)) && (lndh != 1)) {
                 sendMessage(HONK, "1", "1", msg);
                 lndh = 1;

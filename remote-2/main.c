@@ -11,8 +11,8 @@
 #include "lcd.h"
 
 /*
-   Simple program that takes the temperature of an object when it is at the correct distance
-   and the device is tilted at a 90 degree angle.
+   A simple program for a remote control to a vehicle. It controls the movement
+    of the car by using a joystick.
 
    Written by Jakob Lundkvist 
    */

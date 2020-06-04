@@ -3,7 +3,15 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+/*
+ * Contains helperfunctions for the LCD.  
+ *
+ * Author: Jakob Lundkvist
+ * */
 
+/**
+ * Sends and recieves data from the LCD.
+ */ 
 uint8_t SPI_TransmitRecieve(uint8_t data) {
     PORTB &= ~(1UL << PORTB2);
     SPDR = data;
@@ -14,6 +22,9 @@ uint8_t SPI_TransmitRecieve(uint8_t data) {
     return retData;
 }
 
+/**
+ * Writes a byte to the LCD.
+ */ 
 void writeData(uint8_t data) {
 
     PORTB |= (1UL<<1);
@@ -22,17 +33,26 @@ void writeData(uint8_t data) {
     PORTB &= ~(1UL<<1);
 }
 
+/**
+ * Writes a string to the LCD.
+ */ 
 void writeString(char* string) {
     while (*string != '\0') {
         writeData(*string++);
     }
 }
 
+/**
+ * Moves the cursor to the spot specified in the argument. 
+ */ 
 void moveCursor(uint8_t data) {
     SPI_TransmitRecieve(data);
     _delay_us(40);
 }
 
+/**
+ * Clears the display.
+ */ 
 void clearDisplay(void) {
     SPI_TransmitRecieve(0x01);
     _delay_ms(2);
@@ -49,7 +69,9 @@ void writeTemp(int tous, int huns, int hTemp, int lTemp, int dec) {
     _delay_us(40);
 }
 
-
+/**
+ * Initializes the LCD assuming it runs on 3.3V.
+ */ 
 void lcdInit(void){
 
     DDRB = 0xff;
