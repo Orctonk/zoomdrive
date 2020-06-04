@@ -1,13 +1,14 @@
 /*
- * LCD.h
+ *  FILE:
+ *      LCD.h
  * 
- * Date: 2020-05-11
+ *  DESCRIPTION: 
+ *      Interface for the LCD-display.
  * 
- * Author: Mimmi Edholm 
- * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
  * 
  */
-
 
 #ifndef LCD_H_
 #define LCD_H_

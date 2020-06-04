@@ -1,12 +1,15 @@
 /*
- * Date: 2020-05-11
+ *  FILE: 
+ *      main.c
  * 
- * Author: Mimmi Edholm 
+ *  DESCRIPTION: 
+ *      Main file, contains main loop for program. 
  * 
+ *  AUTHOR:
+ *      Mimmi Edholm
  * 
- */
-
-/*****************************************/
+ *
+ *****************************************/
 
 #include <avr/io.h>
 #include <stdio.h>
@@ -130,10 +133,11 @@ void callback(Message msg){
     else if(msg.type == ENGINE_POWER){
         if(!locked) {
             if ((((dm1 != dm2) != dm3 )!= dm4) && !(dm1 && dm2 && dm3 && dm4)){
+                
                 if(!strcmp(msg.args[0],"1") && (front_distance() >= 30)){
                     engine_set_direction(1);
                 }
-                else if(!strcmp(msg.args[0],"-1") && (back_distance() >= 30)){
+                else if(!strcmp(msg.args[0],"-1") && (back_distance() >= 15)){
                     engine_set_direction(-1);
                 }
                 else {
@@ -284,7 +288,7 @@ int main(void) {
         //Check in what direction the vehicle is going.
         if(engine_get_direction() == -1){
             //If the vehicle is backing, 
-            if(back_distance()<= 30){
+            if(back_distance()<= 15){
                 engine_set_direction(0);
             }
             backing_lights(true);
@@ -298,7 +302,7 @@ int main(void) {
                 engine_set_direction(0);
             }
             LCD_set_cursor(0x10);
-            LCD_write_string("Going forward !  ");  
+            LCD_write_string("Going forward!   ");  
         }
         else {
             backing_lights(false);

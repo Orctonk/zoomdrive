@@ -1,10 +1,13 @@
 /*
- * I2C.c
+ *  FILE:
+ *      I2C.c
  * 
- * Date: 2020-05-115
+ *  DESCRIPTION: 
+ *      Components using the I2C interface. Contains two LEDs, one button, two haptic sensors
+ * 		and two distance sensors. 
  * 
- * Author: Mimmi Edholm 
- * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
  * 
  */
 
@@ -167,7 +170,9 @@ bool left_collision(void){
 
 
 /*
- * Return true if the front distance sensor is within 15cm of an object. 
+ * Checks the distance to an object from the distance sensor in the front.
+ * 
+ * Returns: The distance in meters.  
  */
 uint16_t front_distance(void){
 	if (i2c_start((F_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){
@@ -197,7 +202,9 @@ uint16_t front_distance(void){
 }
 
 /*
- * Return true if the back distance sensor is within 15cm of an object. 
+ * Checks the distance to an object from the distance sensor in the back.
+ * 
+ * Returns: The distance in meters.  
  */
 uint16_t back_distance(void){
 	if (i2c_start((B_SENSOR_SLAVE_ADRESS)|I2C_WRITE ) != 0){

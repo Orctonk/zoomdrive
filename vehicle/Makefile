@@ -1,5 +1,6 @@
 # Change these to reflect your project
-TARGET ?= main 
+TARGET ?= main
+
 PORT ?= /dev/ttyACM0
 SPORT ?= /dev/ttyACM1
 
@@ -32,7 +33,7 @@ CTUNING = function-sections data-sections unsigned-char unsigned-bitfields pack-
 CWARN = all strict-prototypes
 OPTIMIZE = -Os
 CFLAGS = -mcall-prologues -mmcu=$(MCU)
-LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os
+LDFLAGS = -Wl,-gc-sections -lpololu_$(DEVICE) -Wl,-relax -Os -lprintf_flt -Wl,-u,vfprintf
 DEFINES = F_CPU=8000000UL DRV_MMC=0
 
 # From this point nothing should be changed
@@ -53,6 +54,7 @@ CFLAGS += $(addprefix -f,$(CTUNING))
 CFLAGS += $(addprefix -W,$(CWARN))
 CFLAGS += $(INC_FLAGS)
 CFLAGS += $(addprefix -D,$(DEFINES))
+CFLAGS += $(OPTIMIZE)
 
 all: $(TARGET_HEX)
 

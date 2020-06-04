@@ -1,9 +1,15 @@
 /*
- * SPI.c
- *
- * Created: 2020-05-12
- *  Author: Mimmi
- */ 
+ *  FILE:
+ *      SPI.c
+ * 
+ *  DESCRIPTION: 
+ *      Implemented SPI.
+ * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
+ * 
+ */
+
 #include "SPI.h"
 
 /* 

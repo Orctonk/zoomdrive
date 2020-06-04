@@ -1,10 +1,13 @@
 /*
- * engine.c
+ *  FILE:
+ *      engine.c
  * 
- * Date: 2020-05-12
+ *  DESCRIPTION: 
+ *      Implemented engine, function for setting speed of the wheels.     
  * 
- * Author: Mimmi Edholm 
- * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
+ *      Filip Henningsson
  * 
  */
 

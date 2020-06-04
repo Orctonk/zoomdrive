@@ -1,10 +1,14 @@
 /*
- * SPI.h
- *
- * Created: 2020-05-12
- *  Author: Mimmi
- */ 
-
+ *  FILE:
+ *      SPI.h
+ * 
+ *  DESCRIPTION: 
+ *      Interface for the SPI.
+ * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
+ * 
+ */
 
 #ifndef SPI_H_
 #define SPI_H_

@@ -1,10 +1,12 @@
 /*
- * RGB_LED_strip.h
+ *  FILE:
+ *      RGB_LED_strip.h
  * 
- * Date: 2020-05-11
+ *  DESCRIPTION: 
+ *      Interface for the LED-strip. 
  * 
- * Author: Mimmi Edholm 
- * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
  * 
  */
 

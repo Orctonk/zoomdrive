@@ -1,10 +1,13 @@
 /*
- * RGB_LED_strip.c
+ *  FILE:
+ *      RGB_LED_strip.c
  * 
- * Date: 2020-05-20
+ *  DESCRIPTION: 
+ *      Implemented RGB_LED_strip. Uses allready existing drivers from Pololu GitHub
+ *      Link: https://github.com/pololu/pololu-led-strip-avr
  * 
- * Author: Mimmi Edholm 
- * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
  * 
  */
 
@@ -191,7 +194,7 @@ void LED_lights(int i){
     }
 }
 /*****************************************************
- *Following drivers got from Pololu
+ * Following drivers are from Pololu
  * Link: https://github.com/pololu/pololu-led-strip-avr
  *******************************************************/
 

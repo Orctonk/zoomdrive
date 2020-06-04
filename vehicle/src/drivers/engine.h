@@ -1,10 +1,12 @@
 /*
- * engine.h
+ *  FILE:
+ *      engine.h
  * 
- * Date: 2020-05-11
+ *  DESCRIPTION: 
+ *      Interface for the engine and defines. 
  * 
- * Author: Mimmi Edholm 
- * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
  * 
  */
 

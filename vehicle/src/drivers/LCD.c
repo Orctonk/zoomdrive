@@ -1,13 +1,14 @@
 /*
- * LCD.c
+ *  FILE:
+ *      LCD.c
  * 
- * Date: 2020-05-12
+ *  DESCRIPTION: 
+ *      Implemented LCD-display.
  * 
- * Author: Mimmi Edholm 
- * 
+ *  AUTHOR:
+ *      Mimmi Edholm 
  * 
  */
-
 
 #include "LCD.h"
 #include "SPI.h"
